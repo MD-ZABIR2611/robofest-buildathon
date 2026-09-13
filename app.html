@@ -1,0 +1,2192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediCare+ — Digital Healthcare Management</title>
+<!--
+================================================================================
+ MediCare+ — Secure Healthcare Application (single-file build)
+================================================================================
+ FILE SECTIONS
+   <style>   1. Design tokens        2. Base / reset / typography / buttons
+             3. Components (cards, pills, tables, modals, toasts, inputs)
+             4. Dashboard shell       5. Patient styles   6. Doctor styles
+             7. Admin styles          8. Responsive (~900px)
+   <body>    Auth view (login/register/reset) · App shell (sidebar, topbar,
+             main with data-view sections) · shared modal + toast containers
+   <script>  1. Firebase init + CONFIG     2. Constants
+             3. Utils                      4. Schedule generator (pure fn)
+             5. Router                     6. Auth
+             7. Patient logic              8. Doctor logic
+             9. Admin logic               10. Reminder ticker
+            11. Boot / event wiring
+
+ SETUP
+   1. Create a Firebase project (console.firebase.google.com).
+   2. Enable Authentication → Email/Password.
+   3. Enable Cloud Firestore. For local work run: firebase emulators:start
+      (or deploy to your project).
+   4. Register a Web App and paste its config into CONFIG below.
+   5. SECURITY: this UI never grants access by itself. Deploy firestore.rules
+      that enforce, per request:
+        - role claims / users/{uid}.role on every read & write
+        - patients read only their own appointments/prescriptions/reminders/records
+        - doctors read patients/{pid}/records ONLY while a valid, unexpired
+          access_grants/{doctorUid_patientId} doc exists (status active,
+          expiresAt > now) — enforce via rules using request.time
+        - patients: NO writes to prescriptions, prescriptions/*/medicines
+        - patients: writes to medication_reminders ONLY the `status` field of
+          their own docs, only from pending|sent, only status in taken|skipped|missed|sent
+        - medication_reminders doc IDs are deterministic — rules can require
+          request.resource.id to match the claimed fields
+        - audit_logs: readable by admin, writable only by authenticated
+          non-admin clients (in production, move writes to Cloud Functions)
+        - role custom claims are set via the Admin SDK / console, never client-side
+================================================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   1. DESIGN TOKENS
+============================================================ */
+:root{
+  --teal:#0E9E8E; --teal-dark:#0B7E71; --blue:#2D6CDF; --mint:#B8F0E4;
+  --mint-soft:rgba(184,240,228,.5); --coral:#FF7A6E; --ice:#F4F9FC;
+  --ink:#1E2A3A; --heading:#0B1F3A; --muted:#5B6B7C; --line:#DFEBF1;
+  --shadow:0 10px 30px -14px rgba(14,158,142,.18);
+  --shadow-hover:0 18px 42px -16px rgba(14,158,142,.30);
+  --r:16px; --side-w:266px;
+}
+/* ============================================================
+   2. BASE + RESET + TYPOGRAPHY + PILL BUTTONS
+============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Poppins',sans-serif;font-size:16px;font-weight:400;color:var(--ink);background:var(--ice);line-height:1.6;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+img,svg{display:block}
+h1,h2,h3,h4{color:var(--heading);line-height:1.25}
+a{color:var(--teal);text-decoration:none}
+button{font-family:inherit}
+::selection{background:var(--mint);color:var(--heading)}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:6px}
+.page-h{font-size:36px;font-weight:700;color:var(--heading)}
+.sec-h{font-size:28px;font-weight:700;color:var(--heading)}
+.card-h{font-size:20px;font-weight:600;color:var(--heading)}
+.stat-n{font-size:44px;font-weight:700;color:var(--heading);line-height:1.1}
+.sub{color:var(--muted);font-size:15px}
+.ic{width:22px;height:22px;flex:none}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  border:none;cursor:pointer;font:inherit;font-size:15px;font-weight:600;
+  padding:13px 32px;border-radius:50px;line-height:1.2;
+  transition:background .3s ease,color .3s ease,transform .3s ease,box-shadow .3s ease;
+}
+.btn .ic{width:18px;height:18px}
+.btn-primary{background:var(--teal);color:#fff}
+.btn-primary:hover{background:var(--teal-dark);transform:translateY(-2px);box-shadow:0 10px 22px -10px rgba(14,158,142,.55)}
+.btn-outline{background:transparent;color:var(--teal);box-shadow:inset 0 0 0 2px var(--teal)}
+.btn-outline:hover{background:var(--mint)}
+.btn-ghost{background:var(--ice);color:var(--ink)}
+.btn-ghost:hover{background:var(--mint)}
+.btn-danger{background:var(--coral);color:#fff} /* functional danger only (destructive confirm / errors) */
+.btn-danger:hover{background:#F05F52;transform:translateY(-2px)}
+.btn-sm{padding:8px 18px;font-size:13.5px}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.btn-link{background:none;border:none;color:var(--teal);font-weight:600;cursor:pointer;padding:0;font-size:14.5px}
+.btn-link:hover{color:var(--teal-dark)}
+/* ============================================================
+   3. COMPONENTS — cards, badges, pills, tables, modals, toasts, inputs
+============================================================ */
+.card{background:#fff;border:1px solid var(--mint-soft);border-radius:var(--r);padding:24px;box-shadow:var(--shadow);transition:transform .3s ease,box-shadow .3s ease}
+.card.hover:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover)}
+.icon-box{width:48px;height:48px;border-radius:14px;background:var(--mint);color:var(--teal);display:flex;align-items:center;justify-content:center;flex:none}
+.icon-box .ic{width:24px;height:24px}
+.icon-box.blue{background:rgba(45,108,223,.12);color:var(--blue)}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--mint);color:var(--teal-dark);font-size:12.5px;font-weight:600;padding:3px 12px;border-radius:50px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 13px;border-radius:50px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.st-pending{background:rgba(45,108,223,.1);color:var(--blue)}
+.st-confirmed,.st-verified,.st-active,.st-taken{background:var(--mint);color:var(--teal-dark)}
+.st-completed{background:rgba(14,158,142,.13);color:var(--teal-dark)}
+.st-cancelled,.st-skipped,.st-unverified,.st-disabled{background:#EDF1F5;color:#64748B}
+.st-rescheduled{background:transparent;color:var(--blue);box-shadow:inset 0 0 0 1.5px var(--blue)}
+.st-rescheduled::before{background:currentColor}
+.st-noshow,.st-missed,.st-expired,.st-closed{background:#E2E8F0;color:#475569}
+.st-sent{background:rgba(45,108,223,.1);color:var(--blue)}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:#fff;box-shadow:var(--shadow)}
+.tbl{width:100%;border-collapse:collapse;font-size:14.5px;min-width:640px}
+.tbl th{text-align:left;background:var(--ice);color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:13px 18px;border-bottom:1px solid var(--line)}
+.tbl td{padding:14px 18px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr{transition:background .2s}
+.tbl tbody tr:hover{background:#FAFDFE}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.field label{font-size:13.5px;font-weight:600;color:var(--heading)}
+.inp{font:inherit;font-size:15px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 15px;width:100%;transition:border-color .25s,box-shadow .25s}
+.inp:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(14,158,142,.14)}
+textarea.inp{resize:vertical;min-height:90px}
+.err-text{color:var(--coral);font-size:13px;font-weight:500}
+.form-err{display:none;align-items:flex-start;gap:8px;background:rgba(255,122,110,.1);color:#C2463B;border-radius:10px;padding:10px 14px;font-size:13.5px;margin-bottom:14px}
+.form-err.show{display:flex}
+.form-err .ic{width:17px;height:17px;margin-top:2px}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:44px 20px}
+.empty .icon-box{width:64px;height:64px;border-radius:20px;margin-bottom:8px}
+.empty .icon-box .ic{width:30px;height:30px}
+.empty h4{font-size:17px;font-weight:600}
+.empty p{color:var(--muted);font-size:14px;max-width:340px}
+.empty .btn{margin-top:12px}
+.loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:56px 20px;color:var(--muted);font-size:14px}
+.spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--mint);border-top-color:var(--teal);animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* modal */
+#modal-root{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(11,31,58,.46);backdrop-filter:blur(3px)}
+.modal-card{background:#fff;border-radius:var(--r);max-width:460px;width:100%;padding:28px;box-shadow:0 30px 70px -20px rgba(11,31,58,.4);animation:pop .25s ease}
+@keyframes pop{from{transform:translateY(14px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+.modal-card h3{font-size:19px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.modal-card .m-body{font-size:14.5px;color:var(--ink);margin-bottom:22px}
+.modal-card .m-body .field{margin-top:12px}
+.m-actions{display:flex;gap:10px;justify-content:flex-end}
+/* toasts */
+#toast-root{position:fixed;top:20px;right:20px;z-index:300;display:flex;flex-direction:column;gap:10px;max-width:min(380px,calc(100vw - 40px))}
+.toast{display:flex;align-items:flex-start;gap:11px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:12px;padding:13px 16px;box-shadow:0 16px 40px -14px rgba(11,31,58,.28);font-size:14px;animation:slidein .3s ease}
+.toast.success{border-left-color:var(--teal)}
+.toast.error{border-left-color:var(--coral)}
+.toast .ic{width:19px;height:19px;margin-top:1px;color:var(--blue)}
+.toast.success .ic{color:var(--teal)}
+.toast.error .ic{color:var(--coral)}
+@keyframes slidein{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+/* ============================================================
+   4. DASHBOARD SHELL — fixed sidebar + topbar + main
+============================================================ */
+#view-app{display:flex;min-height:100vh}
+#sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--side-w);background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:90;transition:transform .3s ease}
+.side-brand{display:flex;align-items:center;gap:11px;padding:22px 22px 18px;border-bottom:1px solid var(--line)}
+.logo-mark{width:38px;height:38px;border-radius:12px;background:var(--mint);color:var(--teal);display:flex;align-items:center;justify-content:center;flex:none}
+.logo-mark .ic{width:21px;height:21px}
+.logo-word{font-size:20px;font-weight:700;color:var(--heading)}
+.logo-word span{color:var(--teal)}
+#side-nav{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:3px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;border:none;background:none;cursor:pointer;font:inherit;font-size:15px;font-weight:500;color:var(--ink);width:100%;text-align:left;position:relative;transition:background .25s,color .25s}
+.nav-item .ic{width:20px;height:20px;color:var(--muted);transition:color .25s}
+.nav-item:hover{background:var(--ice)}
+.nav-item.active{background:var(--mint);color:var(--teal-dark);font-weight:600}
+.nav-item.active .ic{color:var(--teal)}
+.nav-item.active::before{content:'';position:absolute;left:-12px;top:9px;bottom:9px;width:4px;border-radius:0 4px 4px 0;background:var(--teal)}
+.nav-badge{margin-left:auto;background:var(--teal);color:#fff;font-size:11px;font-weight:600;min-width:20px;height:20px;border-radius:50px;display:flex;align-items:center;justify-content:center;padding:0 6px}
+.side-foot{padding:14px;border-top:1px solid var(--line)}
+.side-foot .nav-item{color:var(--muted)}
+.side-foot .nav-item:hover{color:var(--coral);background:rgba(255,122,110,.07)}
+.side-foot .nav-item .ic{color:inherit}
+#side-overlay{position:fixed;inset:0;background:rgba(11,31,58,.4);z-index:85}
+.app-main{flex:1;margin-left:var(--side-w);display:flex;flex-direction:column;min-width:0}
+#topbar{position:sticky;top:0;z-index:80;background:rgba(255,255,255,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:14px 30px}
+.hamburger{display:none;background:none;border:none;cursor:pointer;color:var(--heading);padding:6px;border-radius:8px}
+.hamburger:hover{background:var(--ice)}
+#page-title{font-size:19px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.user-chip{display:flex;align-items:center;gap:10px}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--mint);color:var(--teal-dark);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none}
+.user-chip .u-meta{line-height:1.25}
+.user-chip .u-name{font-size:14px;font-weight:600;color:var(--heading)}
+.user-chip .u-role{font-size:11.5px;color:var(--muted);text-transform:capitalize}
+#main{flex:1;padding:30px;max-width:1240px;width:100%}
+.view-body{animation:viewin .35s ease}
+@keyframes viewin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.app-foot{padding:16px 30px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line)}
+.page-head{margin-bottom:24px}
+.page-head .sub{margin-top:4px;max-width:620px}
+/* generic layout helpers */
+.grid{display:grid;gap:20px}
+.g-2{grid-template-columns:1fr 1fr}
+.g-3{grid-template-columns:repeat(3,1fr)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.stat-card{display:flex;align-items:center;gap:16px}
+.split{display:grid;grid-template-columns:1.6fr 1fr;gap:20px;align-items:start}
+.row{display:flex;align-items:center;gap:12px}
+.row .grow{flex:1;min-width:0}
+.list{display:flex;flex-direction:column;gap:12px}
+.li-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;transition:border-color .25s,transform .3s,box-shadow .3s}
+.li-row:hover{border-color:var(--mint);transform:translateY(-2px);box-shadow:var(--shadow)}
+.li-main{flex:1;min-width:0}
+.li-title{font-weight:600;font-size:15px;color:var(--heading)}
+.li-sub{font-size:13px;color:var(--muted)}
+.note{display:flex;gap:10px;background:var(--ice);border:1px solid var(--line);border-radius:12px;padding:12px 15px;font-size:13.5px;color:var(--muted)}
+.note .ic{width:18px;height:18px;color:var(--blue);flex:none;margin-top:2px}
+/* ============================================================
+   5. PATIENT VIEW STYLES
+============================================================ */
+.dash-hello{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.next-dose{background:var(--teal);color:#fff;border:none;position:relative;overflow:hidden;padding:26px}
+.next-dose .card-h,.next-dose h3{color:#fff}
+.next-dose .nd-label{font-size:12.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;opacity:.85}
+.next-dose .nd-name{font-size:24px;font-weight:700;margin-top:4px}
+.next-dose .nd-count{font-size:40px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.next-dose .nd-when{opacity:.9;font-size:14px}
+.next-dose .icon-box{background:rgba(255,255,255,.18);color:#fff}
+.next-dose .nd-ecg{position:absolute;right:-8px;top:-6px;opacity:.22;color:#fff}
+.next-dose .nd-ecg svg{width:190px;height:70px}
+.ecg-line{stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.dash-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:20px;margin-bottom:20px}
+.adh-bar{height:10px;border-radius:50px;background:var(--ice);overflow:hidden;margin:12px 0 6px}
+.adh-bar span{display:block;height:100%;border-radius:50px;background:var(--teal);transition:width .6s ease}
+.adh-legend{display:flex;gap:14px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.adh-legend b{color:var(--heading)}
+.dose-row{display:flex;align-items:center;gap:13px;padding:12px 14px;border:1px solid var(--line);border-radius:13px}
+.dose-row.done{background:#FAFDFE}
+.dose-row.done .li-title{text-decoration:line-through;color:var(--muted)}
+.dose-time{font-weight:600;font-size:14px;color:var(--teal-dark);font-variant-numeric:tabular-nums;min-width:74px}
+.spec-chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 20px}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:50px;padding:7px 16px;font:inherit;font-size:13.5px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .25s}
+.chip:hover{border-color:var(--teal);color:var(--teal)}
+.chip.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.doc-card .dc-head{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+.doc-card .dc-name{font-size:17px;font-weight:600;color:var(--heading);display:flex;align-items:center;gap:7px}
+.doc-card .dc-name .ic{width:16px;height:16px;color:var(--teal)}
+.slot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-top:8px}
+.slot{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:10px 6px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;color:var(--ink);text-align:center;transition:all .25s;font-variant-numeric:tabular-nums}
+.slot:hover{border-color:var(--teal);color:var(--teal)}
+.slot.sel{background:var(--teal);border-color:var(--teal);color:#fff}
+.slot.taken{background:var(--ice);color:#A8B6C2;border-style:dashed;cursor:not-allowed}
+.timeline{position:relative;padding-left:26px;display:flex;flex-direction:column;gap:18px}
+.timeline::before{content:'';position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--mint);border-radius:2px}
+.tl-item{position:relative}
+.tl-item::before{content:'';position:absolute;left:-25px;top:7px;width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid var(--teal)}
+.tl-item.blue::before{border-color:var(--blue)}
+.rx-card .rx-meds{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.rx-med{display:flex;gap:12px;align-items:flex-start;background:var(--ice);border-radius:12px;padding:12px 14px}
+.rx-med .icon-box{width:38px;height:38px;border-radius:11px}
+.rx-med .icon-box .ic{width:18px;height:18px}
+.rx-med b{font-size:14.5px;color:var(--heading)}
+.rx-med .li-sub{font-size:12.5px}
+.notif-row{cursor:default}
+.notif-row.unread{background:#F5FCFA;border-color:var(--mint)}
+.notif-row.unread .li-title::after{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--teal);margin-left:8px;vertical-align:middle}
+/* ============================================================
+   6. DOCTOR VIEW STYLES
+============================================================ */
+.consult-banner{display:flex;align-items:center;gap:16px;background:var(--heading);color:#fff;border:none;padding:20px 24px;flex-wrap:wrap}
+.consult-banner .cd{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;background:rgba(255,255,255,.14);border-radius:12px;padding:6px 16px}
+.consult-banner .cd-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.75;display:block}
+.rx-row{border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;background:#fff}
+.rx-row .rr-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.rx-row .rr-head b{color:var(--heading);font-size:15px}
+.icon-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:7px;border-radius:9px;transition:all .25s;display:inline-flex}
+.icon-btn:hover{background:rgba(255,122,110,.1);color:var(--coral)}
+.rx-times{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.rx-times .inp{width:118px;padding:8px 10px;font-size:14px}
+.preview-box{background:var(--ice);border:1px solid var(--line);border-radius:14px;padding:16px;max-height:380px;overflow-y:auto}
+.preview-day{margin-bottom:12px}
+.preview-day b{font-size:13.5px;color:var(--heading)}
+.preview-day .pv-times{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pv-dose{background:#fff;border:1px solid var(--mint);color:var(--teal-dark);font-size:12.5px;font-weight:600;border-radius:50px;padding:3px 11px;font-variant-numeric:tabular-nums}
+.avail-slots{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.day-block{margin-bottom:22px}
+.day-block .db-head{font-size:15px;font-weight:600;color:var(--heading);margin-bottom:10px;display:flex;align-items:center;gap:9px}
+.day-block .db-head .ic{width:17px;height:17px;color:var(--teal)}
+/* ============================================================
+   7. ADMIN VIEW STYLES
+============================================================ */
+.verif-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+/* ============================================================
+   8. AUTH VIEW (uses shell tokens)
+============================================================ */
+#view-auth{min-height:100vh;display:grid;grid-template-columns:460px 1fr}
+.auth-brand{background:var(--teal);color:#fff;padding:52px 46px;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.auth-brand .logo-word{color:#fff;font-size:24px}
+.auth-brand h2{color:#fff;font-size:31px;font-weight:700;line-height:1.3;margin-top:44px;max-width:330px}
+.auth-brand p{opacity:.9;font-size:15px;margin-top:14px;max-width:340px}
+.auth-ecg{margin-top:auto;color:#fff;opacity:.55}
+.auth-ecg svg{width:100%;max-width:360px;height:100px}
+.auth-chips{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+.a-chip{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:11px 16px;font-size:13.5px;font-weight:500}
+.a-chip .ic{width:18px;height:18px}
+.auth-panel{display:flex;align-items:center;justify-content:center;padding:44px 26px;overflow-y:auto}
+.auth-card{width:100%;max-width:440px}
+.auth-card .card-h{font-size:26px;margin-bottom:6px}
+.auth-card>.sub{margin-bottom:26px}
+.auth-switch{text-align:center;margin-top:22px;font-size:14px;color:var(--muted)}
+.role-pick{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.role-card{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:14px;cursor:pointer;text-align:left;font:inherit;transition:all .25s;display:flex;flex-direction:column;gap:6px}
+.role-card b{font-size:14.5px;color:var(--heading)}
+.role-card span{font-size:12px;color:var(--muted)}
+.role-card .ic{color:var(--muted)}
+.role-card.sel{border-color:var(--teal);background:#F5FCFA;box-shadow:0 0 0 3px rgba(14,158,142,.12)}
+.role-card.sel .ic{color:var(--teal)}
+.setup-note{display:flex;gap:11px;background:rgba(45,108,223,.07);border:1px solid rgba(45,108,223,.25);border-radius:12px;padding:13px 15px;font-size:13px;color:var(--ink);margin-bottom:20px}
+.setup-note .ic{color:var(--blue);flex:none;margin-top:2px}
+/* ============================================================
+   8. RESPONSIVE (~900px)
+============================================================ */
+@media (max-width:1100px){
+  .dash-grid{grid-template-columns:1fr 1fr}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .split{grid-template-columns:1fr}
+}
+@media (max-width:900px){
+  #sidebar{transform:translateX(-105%);box-shadow:none}
+  body.side-open #sidebar{transform:none;box-shadow:0 0 60px rgba(11,31,58,.2)}
+  .app-main{margin-left:0}
+  .hamburger{display:inline-flex}
+  #view-auth{grid-template-columns:1fr}
+  .auth-brand{padding:34px 26px;min-height:auto}
+  .auth-brand h2{font-size:24px;margin-top:18px}
+  .auth-ecg svg{height:64px}
+  .dash-grid,.g-2,.g-3{grid-template-columns:1fr}
+  #main{padding:20px 16px}
+  #topbar{padding:12px 16px}
+  .user-chip .u-meta{display:none}
+  .page-h{font-size:29px}
+  .stat-n{font-size:36px}
+}
+@media (prefers-reduced-motion: no-preference){
+  @keyframes floaty{from{transform:translateY(0)}to{transform:translateY(-9px)}}
+  .floaty{animation:floaty 5s ease-in-out infinite alternate}
+  .floaty.d2{animation-delay:1.6s}
+  @keyframes ecgdraw{from{stroke-dashoffset:1500}to{stroke-dashoffset:0}}
+  .auth-ecg .ecg-line{stroke-dasharray:1500;animation:ecgdraw 3.2s ease-out forwards}
+  .next-dose .nd-ecg .ecg-line{stroke-dasharray:1500;animation:ecgdraw 4s ease-out forwards}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════ AUTH VIEW ══════════════════════════ -->
+<div id="view-auth" hidden>
+  <aside class="auth-brand">
+    <div class="row" style="gap:12px">
+      <div class="logo-mark" id="brand-mark-1"></div>
+      <span class="logo-word">MediCare<span>+</span></span>
+    </div>
+    <h2>Your health, organized and on schedule.</h2>
+    <p>Appointments, medical history, digital prescriptions and automatic medication reminders — in one calm, secure place.</p>
+    <div class="auth-ecg" id="auth-ecg"></div>
+    <div class="auth-chips">
+      <div class="a-chip floaty" id="chip-doctors"></div>
+      <div class="a-chip floaty d2" id="chip-support"></div>
+    </div>
+  </aside>
+  <div class="auth-panel">
+    <div class="auth-card">
+      <div class="setup-note" id="auth-setup-note" hidden></div>
+
+      <!-- LOGIN -->
+      <section id="panel-login">
+        <h3 class="card-h">Welcome back</h3>
+        <p class="sub">Sign in to your MediCare+ account.</p><br>
+        <form data-form="login" novalidate>
+          <div class="form-err" id="login-err"></div>
+          <div class="field"><label for="login-email">Email</label><input class="inp" type="email" id="login-email" autocomplete="email" placeholder="you@example.com"></div>
+          <div class="field"><label for="login-pass">Password</label><input class="inp" type="password" id="login-pass" autocomplete="current-password" placeholder="Your password"></div>
+          <button class="btn btn-primary" style="width:100%" type="submit">Sign In</button>
+        </form>
+        <div class="auth-switch">
+          <button class="btn-link" data-action="show-reset">Forgot password?</button><br><br>
+          New here? <button class="btn-link" data-action="goto-register">Create an account</button>
+        </div>
+      </section>
+
+      <!-- REGISTER -->
+      <section id="panel-register" hidden>
+        <h3 class="card-h">Create your account</h3>
+        <p class="sub">Join MediCare+ as a patient or a doctor.</p><br>
+        <form data-form="register" novalidate>
+          <div class="form-err" id="reg-err"></div>
+          <div class="role-pick">
+            <button type="button" class="role-card sel" data-action="set-role" data-role="patient" id="role-card-patient"></button>
+            <button type="button" class="role-card" data-action="set-role" data-role="doctor" id="role-card-doctor"></button>
+          </div>
+          <input type="hidden" id="reg-role" value="patient">
+          <div class="field"><label for="reg-name">Full name</label><input class="inp" id="reg-name" placeholder="Dr. Jane Doe / John Smith"></div>
+          <div class="field" id="reg-spec-wrap" hidden><label for="reg-spec">Specialty</label><input class="inp" id="reg-spec" placeholder="e.g. Cardiology"></div>
+          <div class="field"><label for="reg-email">Email</label><input class="inp" type="email" id="reg-email" autocomplete="email" placeholder="you@example.com"></div>
+          <div class="field"><label for="reg-pass">Password</label><input class="inp" type="password" id="reg-pass" autocomplete="new-password" placeholder="At least 6 characters"></div>
+          <div class="field"><label for="reg-pass2">Confirm password</label><input class="inp" type="password" id="reg-pass2" autocomplete="new-password" placeholder="Repeat password"></div>
+          <button class="btn btn-primary" style="width:100%" type="submit">Create Account</button>
+        </form>
+        <div class="auth-switch">Already registered? <button class="btn-link" data-action="goto-login">Sign in</button></div>
+      </section>
+
+      <!-- RESET -->
+      <section id="panel-reset" hidden>
+        <h3 class="card-h">Reset password</h3>
+        <p class="sub">We will email you a secure reset link.</p><br>
+        <form data-form="reset" novalidate>
+          <div class="form-err" id="reset-err"></div>
+          <div class="field"><label for="reset-email">Email</label><input class="inp" type="email" id="reset-email" placeholder="you@example.com"></div>
+          <button class="btn btn-primary" style="width:100%" type="submit">Send Reset Link</button>
+        </form>
+        <div class="auth-switch"><button class="btn-link" data-action="goto-login" id="reset-back">Back to sign in</button></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ APP SHELL ══════════════════════════ -->
+<div id="view-app" hidden>
+  <aside id="sidebar" aria-label="Dashboard navigation">
+    <div class="side-brand">
+      <div class="logo-mark" id="brand-mark-2"></div>
+      <span class="logo-word">MediCare<span>+</span></span>
+    </div>
+    <nav id="side-nav"></nav>
+    <div class="side-foot"><button class="nav-item" id="btn-logout"></button></div>
+  </aside>
+  <div id="side-overlay" hidden></div>
+
+  <div class="app-main">
+    <header id="topbar">
+      <button class="hamburger" id="btn-hamburger" aria-label="Open menu"></button>
+      <h1 id="page-title">Dashboard</h1>
+      <div class="topbar-right">
+        <button class="btn btn-outline btn-sm" id="btn-alerts" hidden></button>
+        <div class="user-chip" id="user-chip"></div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section data-view="patient" hidden><div id="body-patient" class="view-body"></div></section>
+      <section data-view="doctor"  hidden><div id="body-doctor"  class="view-body"></div></section>
+      <section data-view="admin"   hidden><div id="body-admin"   class="view-body"></div></section>
+      <section data-view="denied"  hidden><div id="body-denied"  class="view-body"></div></section>
+    </main>
+
+    <footer class="app-foot">MediCare+ — a healthcare management and reminder platform. Records here support your care; they are not a substitute for professional medical advice.</footer>
+  </div>
+</div>
+
+<!-- shared modal + toast containers -->
+<div id="modal-root" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <h3 id="modal-title"></h3>
+    <div class="m-body" id="modal-body"></div>
+    <div class="m-actions">
+      <button class="btn btn-ghost btn-sm" id="modal-cancel">Cancel</button>
+      <button class="btn btn-sm" id="modal-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+<div id="toast-root" aria-live="polite"></div>
+
+<!-- Firebase compat SDK (Auth + Firestore) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script type="module">
+/* ============================================================
+   1. FIREBASE INIT + CONFIG
+============================================================ */
+const CONFIG = {
+  apiKey:            "YOUR_API_KEY",            // ← paste your Firebase web app config here
+  authDomain:        "YOUR_PROJECT.firebaseapp.com",
+  projectId:         "YOUR_PROJECT_ID",
+  storageBucket:     "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId:             "YOUR_APP_ID"
+};
+
+let db = null, auth = null, firebaseReady = false, initError = '';
+try {
+  if (!CONFIG.apiKey || CONFIG.apiKey.startsWith('YOUR_')) throw new Error('placeholder-config');
+  firebase.initializeApp(CONFIG);
+  db = firebase.firestore();
+  auth = firebase.auth();
+  firebaseReady = true;
+} catch (e) {
+  initError = e.message === 'placeholder-config'
+    ? 'Firebase is not configured yet. Open this file, find the CONFIG constant at the top of the script section, and paste your Firebase web app config. Then enable Email/Password sign-in and Cloud Firestore in the Firebase console.'
+    : 'Firebase failed to initialize: ' + e.message;
+}
+
+const TS   = () => firebase.firestore.Timestamp;
+const sv   = () => firebase.firestore.FieldValue.serverTimestamp();
+const COL  = {
+  users:'users', patients:'patients', doctors:'doctors', appts:'appointments',
+  rx:'prescriptions', reminders:'medication_reminders', grants:'access_grants',
+  notifs:'notifications', logs:'audit_logs'
+};
+
+/* ============================================================
+   2. CONSTANTS — roles, appointment & reminder statuses
+============================================================ */
+const ROLES = { PATIENT:'patient', DOCTOR:'doctor', ADMIN:'admin' };
+const APPT_STATUSES = ['pending','confirmed','cancelled','completed','rescheduled','no-show'];
+const REMINDER_STATUSES = ['pending','sent','taken','skipped','missed'];
+const SPECIALTIES = ['General Practice','Cardiology','Dermatology','Pediatrics','Neurology','Orthopedics','Psychiatry','Dentistry'];
+const CONSULT_WINDOW_MS = 60 * 60 * 1000; // doctor may view history for 1 hour per consultation
+
+/* ============================================================
+   3. UTILS — $/$$, dates, toast, escapeHtml, confirm modal, icons
+============================================================ */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const ICON_PATHS = {
+  grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  calendar:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  calendarPlus:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M12 14v5M9.5 16.5h5"/>',
+  clipboard:'<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M9 12h6M9 16h4"/>',
+  fileText:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h4"/>',
+  filePlus:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M12 12v6M9 15h6"/>',
+  capsule:'<path d="m10.5 20.5-7-7a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7Z"/><path d="m8.5 8.5 7 7"/>',
+  folder:'<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2Z"/>',
+  bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M22 20a6.5 6.5 0 0 0-4.5-6.2"/>',
+  stethoscope:'<path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 12 0v-4"/><circle cx="20" cy="10" r="2"/>',
+  shield:'<path d="M12 22s8-3.6 8-10V5.5L12 2 4 5.5V12c0 6.4 8 10 8 10Z"/><path d="m9 11.5 2 2 4-4.5"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  check:'<path d="m20 6-11 11-5-5"/>',
+  checkCircle:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 5-5"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  trash:'<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/>',
+  logout:'<path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3"/><path d="m16 17 5-5-5-5M21 12H9"/>',
+  alert:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  send:'<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/>',
+  arrowLeft:'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  refresh:'<path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/>',
+  phone:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/>',
+  mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>',
+  cross:'<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6Z"/>',
+  activity:'<path d="M22 12h-4l-3 8L9 4l-3 8H2"/>',
+  save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/>'
+};
+const icon = (name, cls='') =>
+  `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name]||''}</svg>`;
+
+/* ---- dates ---- */
+const pad = n => String(n).padStart(2,'0');
+const todayISO = () => { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+function toDate(v){ // accepts Firestore Timestamp | Date | 'YYYY-MM-DD' | ISO string
+  if (!v) return null;
+  if (v.toDate) return v.toDate();
+  if (v instanceof Date) return v;
+  if (typeof v === 'string') {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) { const [y,m,d]=v.split('-').map(Number); return new Date(y,m-1,d); }
+    const d = new Date(v); return isNaN(d) ? null : d;
+  }
+  if (v.seconds != null) return new Date(v.seconds*1000);
+  return null;
+}
+const toMs = v => { const d = toDate(v); return d ? d.getTime() : 0; };
+const dateKeyOf = v => { const d = toDate(v); return d ? `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}` : ''; };
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function fmtDate(v){ const d=toDate(v); return d ? `${DAYS[d.getDay()].slice(0,3)}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}` : '—'; }
+function fmtDateShort(v){ const d=toDate(v); return d ? `${d.getDate()} ${MONTHS[d.getMonth()]}` : '—'; }
+function fmtTime(v){ // 'HH:MM' string or Date
+  const d = (v instanceof Date) ? v : null;
+  let h, m;
+  if (d) { h=d.getHours(); m=d.getMinutes(); }
+  else if (typeof v === 'string' && /^\d{2}:\d{2}/.test(v)) { h=+v.slice(0,2); m=+v.slice(3,5); }
+  else { const dd=toDate(v); if(!dd) return '—'; h=dd.getHours(); m=dd.getMinutes(); }
+  const ap = h>=12?'PM':'AM'; const h12 = h%12||12;
+  return `${h12}:${pad(m)} ${ap}`;
+}
+function fmtWhen(v){
+  const diff = Date.now() - toMs(v);
+  if (diff < 60e3) return 'just now';
+  if (diff < 3600e3) return `${Math.floor(diff/60e3)}m ago`;
+  if (diff < 86400e3) return `${Math.floor(diff/3600e3)}h ago`;
+  return fmtDate(v);
+}
+function fmtRemain(ms){
+  if (ms <= 0) return '00:00';
+  const s = Math.floor(ms/1000), h = Math.floor(s/3600), m = Math.floor((s%3600)/60), ss = s%60;
+  return h > 0 ? `${h}:${pad(m)}:${pad(ss)}` : `${pad(m)}:${pad(ss)}`;
+}
+function fmtCountdownWords(ms){
+  if (ms <= 0) return 'now';
+  const s = Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+  if (h>0) return `${h}h ${m}m`;
+  if (m>0) return `${m}m ${pad(ss)}s`;
+  return `${ss}s`;
+}
+
+/* ---- toast ---- */
+function toast(msg, type='info', ms=4500){
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const ic = type==='success' ? 'checkCircle' : type==='error' ? 'alert' : 'info';
+  el.innerHTML = `${icon(ic)}<div>${esc(msg)}</div>`;
+  $('#toast-root').appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),320); }, ms);
+}
+
+/* ---- modal / confirm ---- */
+let modalResolve = null;
+function openModal({ title, bodyHtml, okText='Confirm', okClass='btn-primary' }){
+  $('#modal-title').innerHTML = title;
+  $('#modal-body').innerHTML = bodyHtml;
+  const ok = $('#modal-ok');
+  ok.className = `btn btn-sm ${okClass}`;
+  ok.textContent = okText;
+  $('#modal-root').hidden = false;
+  return new Promise(res => { modalResolve = res; });
+}
+function closeModal(val){ $('#modal-root').hidden = true; if (modalResolve) { modalResolve(val); modalResolve = null; } }
+async function confirmDialog(title, msg, { okText='Confirm', danger=false } = {}){
+  return openModal({ title: `${icon(danger?'alert':'info')} ${esc(title)}`, bodyHtml: esc(msg), okText, okClass: danger?'btn-danger':'btn-primary' });
+}
+
+/* ---- small render helpers ---- */
+const statusPill = s => `<span class="pill st-${String(s).replace(/[^a-z]/g,'')}">${esc(String(s).replace('-',' '))}</span>`;
+function emptyState(ic, title, text, action=''){
+  return `<div class="empty">${`<span class="icon-box">${icon(ic)}</span>`}<h4>${esc(title)}</h4><p>${esc(text)}</p>${action}</div>`;
+}
+const loadingBlock = (msg='Loading…') => `<div class="loading"><div class="spinner"></div>${esc(msg)}</div>`;
+const initials = n => String(n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('') || '?';
+
+/* ============================================================
+   4. SCHEDULE GENERATOR — PURE FUNCTION (the heart of reminders)
+   Input : { prescriptionId, medicines:[{name,dosage,frequencyPerDay,
+             times:["08:00","20:00"],durationDays,startDate,instructions}] }
+   Output: flat list of dose objects with deterministic reminder IDs:
+           `${prescriptionId}_${medicineIndex}_${ISO datetime}`
+   RULES: doctor-specified times are used EXACTLY as given. If times are
+   missing or their count ≠ frequencyPerDay, this function THROWS — it never
+   invents or guesses a medication schedule (healthcare safety principle).
+   Deterministic IDs mean regenerating the same prescription can never
+   create duplicate reminder docs (set() overwrites the same document).
+============================================================ */
+function generateSchedule({ prescriptionId, medicines, startDate }){
+  if (!prescriptionId || typeof prescriptionId !== 'string')
+    throw new Error('A prescription ID is required to generate a schedule.');
+  if (!Array.isArray(medicines) || medicines.length === 0)
+    throw new Error('Add at least one medicine before generating a schedule.');
+  const start = toDate(startDate);
+  if (!start || isNaN(start)) throw new Error('Pick a valid start date for the prescription.');
+  start.setHours(0,0,0,0);
+
+  const doses = [];
+  medicines.forEach((m, i) => {
+    const label = String(m.name || '').trim();
+    if (!label) throw new Error(`Medicine ${i+1}: a medicine name is required.`);
+    const freq = Number(m.frequencyPerDay);
+    if (!Number.isInteger(freq) || freq < 1 || freq > 12)
+      throw new Error(`"${label}": frequency must be a whole number between 1 and 12 doses per day.`);
+    const times = m.times;
+    if (!Array.isArray(times) || times.length === 0)
+      throw new Error(`"${label}": no medication times were provided. Enter exactly ${freq} time(s) — schedules are never guessed.`);
+    if (times.length !== freq)
+      throw new Error(`"${label}": ${freq} daily dose(s) required, but ${times.length} time(s) entered. Times must match the frequency exactly.`);
+    const clean = times.map(t => {
+      const s = String(t).trim();
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(s))
+        throw new Error(`"${label}": "${s}" is not a valid 24-hour time (HH:MM).`);
+      return s;
+    });
+    const dur = Number(m.durationDays);
+    if (!Number.isInteger(dur) || dur < 1 || dur > 180)
+      throw new Error(`"${label}": duration must be a whole number of days (1–180).`);
+    for (let d = 0; d < dur; d++){
+      for (const t of clean){
+        const [hh, mm] = t.split(':').map(Number);
+        const dt = new Date(start);
+        dt.setDate(start.getDate() + d);
+        dt.setHours(hh, mm, 0, 0);
+        doses.push({
+          reminderId: `${prescriptionId}_${i}_${dt.toISOString()}`, // deterministic → idempotent writes
+          medicineIndex: i,
+          name: label,
+          dosage: String(m.dosage || '').trim(),
+          instructions: String(m.instructions || '').trim(),
+          scheduledAt: dt
+        });
+      }
+    }
+  });
+  doses.sort((a,b) => a.scheduledAt - b.scheduledAt);
+  return doses;
+}
+
+/* ============================================================
+   APP STATE
+============================================================ */
+const S = {
+  user:null, role:null, profile:null, roleDoc:null,
+  unsubs:[], ticker:null, clock:null,
+  notifications:[], notified:new Set(),
+  selectedDoctor:null, rxContext:null,
+  activeConsult:null, consultData:null,
+  ui:{ docSearch:'', spec:'All', apptFilter:'all', schedTab:'today', availSel:new Set(), availDraft:null, bookDate:todayISO() },
+  patient:{ doctors:[], appointments:[], prescriptions:[], reminders:[], records:[] },
+  doctor:{ appointments:[], prescriptions:[] },
+  admin:{ users:[], doctors:[], appointments:[], logs:[] },
+};
+const detachAll = () => { S.unsubs.forEach(u => { try{u();}catch(e){} }); S.unsubs = []; };
+const stopTimers = () => { clearInterval(S.ticker); clearInterval(S.clock); S.ticker = S.clock = null; };
+
+/* ============================================================
+   5. ROUTER — hash routing + role gating
+   NOTE: role gating here is COSMETIC ONLY. Every Firestore request is
+   re-authorized by firestore.rules; custom claims are the server-side
+   source of truth (set via Admin SDK / Firebase console).
+============================================================ */
+const DEFAULT_SUB = { patient:'dashboard', doctor:'dashboard', admin:'dashboard' };
+const SUBVIEWS = {
+  patient: ['dashboard','find-doctor','book','appointments','prescriptions','medications','history','notifications','profile'],
+  doctor:  ['dashboard','requests','schedule','consultation','builder','consults','profile'],
+  admin:   ['dashboard','users','verification','appointments','logs'],
+};
+const TITLES = {
+  patient:{dashboard:'Dashboard','find-doctor':'Find Doctor',book:'Book Appointment',appointments:'My Appointments',prescriptions:'Prescriptions',medications:'My Medications',history:'Medical History',notifications:'Notifications',profile:'Profile'},
+  doctor:{dashboard:'Dashboard',requests:'Appointment Requests',schedule:'Schedule',consultation:'Consultation',builder:'Prescription Builder',consults:'My Consultations',profile:'Profile'},
+  admin:{dashboard:'Dashboard',users:'Users',verification:'Doctor Verification',appointments:'Appointments',logs:'Audit Logs'},
+};
+const NAV = {
+  patient:[['dashboard','grid'],['find-doctor','search'],['book','calendarPlus'],['appointments','clipboard'],['prescriptions','fileText'],['medications','capsule'],['history','folder'],['notifications','bell'],['profile','user']],
+  doctor:[['dashboard','grid'],['requests','clipboard'],['schedule','calendar'],['consultation','stethoscope'],['builder','filePlus'],['consults','clock'],['profile','user']],
+  admin:[['dashboard','grid'],['users','users'],['verification','shield'],['appointments','calendar'],['logs','fileText']],
+};
+function parseHash(){
+  const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  return { route: parts[0] || '', sub: parts[1] || '' };
+}
+function navigate(hash){ if (location.hash === hash) route(); else location.hash = hash; }
+
+function route(){
+  const { route: r, sub } = parseHash();
+  closeSidebar();
+
+  /* Unauthenticated → login */
+  if (!firebaseReady || !S.user){
+    showAuth(r === 'register' ? 'register' : 'login');
+    return;
+  }
+  if (!S.role || !S.profile){ return; } // still loading profile — onProfileReady will re-route
+
+  const authViews = ['login','register',''];
+  if (authViews.includes(r)){ showApp(); navigateSub(S.role, DEFAULT_SUB[S.role]); return; }
+
+  if (!SUBVIEWS[r]){ showApp(); navigateSub(S.role, DEFAULT_SUB[S.role]); return; }
+
+  if (r !== S.role){ showApp(); renderDenied(r); return; } // wrong role → access message (real enforcement lives in firestore.rules)
+
+  showApp();
+  navigateSub(r, SUBVIEWS[r].includes(sub) ? sub : DEFAULT_SUB[r]);
+}
+function showAuth(panel){
+  $('#view-app').hidden = true;
+  $('#view-auth').hidden = false;
+  showAuthPanel(panel);
+}
+function showApp(){
+  $('#view-auth').hidden = true;
+  $('#view-app').hidden = false;
+  renderChrome();
+}
+function navigateSub(role, sub){
+  const expected = `#/${role}/${sub}`;
+  if (location.hash !== expected){ history.replaceState(null,'',expected); }
+  $$('#main > section').forEach(s => { s.hidden = s.dataset.view !== role && s.dataset.view !== 'denied'; });
+  $('#body-denied').closest('section').hidden = true;
+  $$('#side-nav .nav-item[data-sub]').forEach(b => b.classList.toggle('active', b.dataset.sub === sub));
+  $('#page-title').textContent = TITLES[role][sub] || 'MediCare+';
+  renderCurrent(sub);
+  $('#main').scrollTop = 0; window.scrollTo({top:0});
+}
+function currentSub(){
+  const { sub } = parseHash();
+  const role = S.role || 'patient';
+  return SUBVIEWS[role]?.includes(sub) ? sub : DEFAULT_SUB[role];
+}
+function renderCurrent(sub = currentSub()){
+  const role = S.role;
+  if (!role) return;
+  const body = $(`#body-${role}`);
+  if (!body) return;
+  /* Don't clobber a form the user is typing in — refresh on blur instead */
+  const ae = document.activeElement;
+  if (body.contains(ae) && /INPUT|TEXTAREA|SELECT/.test(ae.tagName) && !ae.type?.match(/date|time/)) return;
+  const fn = VIEWS[`${role}/${sub}`];
+  body.innerHTML = fn ? fn() : emptyState('info','Coming soon','This section is not available yet.');
+  if (fn?.after) fn.after();
+}
+function renderDenied(wantedRole){
+  $$('#main > section').forEach(s => s.hidden = s.dataset.view !== 'denied');
+  const label = wantedRole.charAt(0).toUpperCase() + wantedRole.slice(1);
+  $('#page-title').textContent = 'Access restricted';
+  $('#body-denied').innerHTML = `
+    <div class="card" style="max-width:560px;margin:40px auto">
+      ${emptyState('shield','This area is for ' + label.toLowerCase() + 's',
+        `Your account has the "${S.role}" role, so the ${label} dashboard is not available to you. If you believe this is a mistake, contact your administrator. Role checks are also enforced server-side by firestore.rules.`,
+        `<button class="btn btn-primary" data-action="go-home">Go to my dashboard</button>`)}
+    </div>`;
+}
+
+/* ============================================================
+   6. AUTH — register, login, reset, logout, onAuthStateChanged
+============================================================ */
+function showAuthPanel(p){
+  ['login','register','reset'].forEach(k => $(`#panel-${k}`).hidden = k !== p);
+}
+function authErr(id, msg){ const el = $(id); el.innerHTML = `${icon('alert')}<span>${esc(msg)}</span>`; el.classList.add('show'); }
+function clearErr(id){ $(id).classList.remove('show'); }
+
+const AUTH_MSG = {
+  'auth/invalid-credential':'Incorrect email or password.',
+  'auth/user-not-found':'Incorrect email or password.',
+  'auth/wrong-password':'Incorrect email or password.',
+  'auth/email-already-in-use':'An account with this email already exists.',
+  'auth/weak-password':'Password must be at least 6 characters.',
+  'auth/too-many-requests':'Too many attempts — please wait a moment and try again.',
+  'auth/invalid-email':'Please enter a valid email address.',
+  'auth/network-request-failed':'Network error — check your connection and try again.'
+};
+const friendly = e => AUTH_MSG[e?.code] || 'Something went wrong. Please try again.';
+
+async function doLogin(email, pass){
+  if (!firebaseReady) return toast(initError, 'error', 8000);
+  try { await auth.signInWithEmailAndPassword(email, pass); }
+  catch(e){ authErr('#login-err', friendly(e)); }
+}
+async function doRegister({ role, name, email, pass, specialty }){
+  if (!firebaseReady) return toast(initError, 'error', 8000);
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    const uid = cred.user.uid;
+    // Profile docs. Real role enforcement = custom claims (Admin SDK / console)
+    // + firestore.rules; the users doc is the UI-level fallback.
+    await db.collection(COL.users).doc(uid).set({ name, email, role, status:'active', createdAt: sv() });
+    if (role === ROLES.DOCTOR){
+      await db.collection(COL.doctors).doc(uid).set({ name, email, specialty, bio:'', verificationStatus:'unverified', availability:{} });
+    } else {
+      await db.collection(COL.patients).doc(uid).set({ dob:'', phone:'', emergencyContact:'' });
+    }
+    toast('Welcome to MediCare+ — your account is ready.', 'success');
+  } catch(e){ authErr('#reg-err', friendly(e)); }
+}
+async function doReset(email){
+  if (!firebaseReady) return toast(initError, 'error', 8000);
+  try {
+    await auth.sendPasswordResetEmail(email);
+    toast('Reset link sent — check your inbox.', 'success');
+    showAuthPanel('login');
+  } catch(e){ authErr('#reset-err', friendly(e)); }
+}
+async function doLogout(){
+  detachAll(); stopTimers();
+  S.user = null; S.role = null; S.profile = null; S.roleDoc = null;
+  S.notifications = []; S.notified.clear();
+  S.activeConsult = null; S.rxContext = null; S.selectedDoctor = null;
+  Object.assign(S.patient,{doctors:[],appointments:[],prescriptions:[],reminders:[],records:[]});
+  Object.assign(S.doctor,{appointments:[],prescriptions:[]});
+  Object.assign(S.admin,{users:[],doctors:[],appointments:[],logs:[]});
+  await auth.signOut();
+  location.hash = '#/login';
+  toast('You have been signed out.', 'info');
+}
+
+async function onProfileReady(user, claimRole){
+  try {
+    const udoc = await db.collection(COL.users).doc(user.uid).get();
+    const ud = udoc.exists ? udoc.data() : { name:user.email, email:user.email, role:'patient', status:'active' };
+    // Prefer the server-issued claim; fall back to the profile doc for new signups.
+    const role = claimRole || ud.role || 'patient';
+    S.role = role;
+    S.profile = ud;
+    const rdoc = await (role === ROLES.DOCTOR ? db.collection(COL.doctors) : db.collection(COL.patients)).doc(user.uid).get();
+    S.roleDoc = rdoc.exists ? rdoc.data() : {};
+    attachListeners(role);
+    startTimers();
+    route();
+  } catch(e){
+    toast('Could not load your profile: ' + friendly(e), 'error');
+  }
+}
+auth && auth.onAuthStateChanged(async user => {
+  detachAll(); stopTimers();
+  if (!user){ S.user = null; S.role = null; route(); return; }
+  S.user = user;
+  try {
+    const tok = await user.getIdTokenResult();
+    await onProfileReady(user, tok.claims?.role);
+  } catch(e){ await onProfileReady(user, null); }
+});
+
+/* ---- live listeners (per role) ---- */
+function attachListeners(role){
+  const uid = S.user.uid;
+  const on = (q, cb) => S.unsubs.push(q.onSnapshot(cb, e => { console.error(e); toast('A live update failed to load.', 'error'); }));
+  const arr = q => q.docs.map(d => ({ id:d.id, ...d.data() }));
+
+  on(db.collection(COL.notifs).where('recipientId','==',uid).limit(40), s => {
+    const hadUnread = S.notifications.some(n => !n.read);
+    S.notifications = arr(s).sort((a,b)=>toMs(b.createdAt)-toMs(a.createdAt));
+    renderNavBadge();
+    if (S.notifications.some(n => !n.read) && !hadUnread) renderCurrent();
+  });
+
+  if (role === ROLES.PATIENT){
+    on(db.collection(COL.doctors), s => { S.patient.doctors = arr(s); renderCurrent(); });
+    on(db.collection(COL.appts).where('patientId','==',uid), s => { S.patient.appointments = arr(s); renderCurrent(); });
+    on(db.collection(COL.rx).where('patientId','==',uid), s => { S.patient.prescriptions = arr(s).sort((a,b)=>toMs(b.createdAt)-toMs(a.createdAt)); renderCurrent(); });
+    on(db.collection(COL.reminders).where('patientId','==',uid), s => {
+      S.patient.reminders = arr(s).sort((a,b)=>toMs(a.scheduledAt)-toMs(b.scheduledAt));
+      checkReminders();
+      renderCurrent();
+    });
+    on(db.collection(COL.patients).doc(uid).collection('records'), s => {
+      S.patient.records = arr(s).sort((a,b)=>toMs(b.createdAt)-toMs(a.createdAt)); renderCurrent();
+    });
+  }
+  if (role === ROLES.DOCTOR){
+    on(db.collection(COL.appts).where('doctorId','==',uid), s => {
+      S.doctor.appointments = arr(s);
+      // Auto-expire an open consultation if its window has passed
+      if (S.activeConsult){
+        const appt = S.doctor.appointments.find(a => a.id === S.activeConsult.appointmentId);
+        if (appt && !['confirmed','completed'].includes(appt.status)) closeConsult('expired', true);
+      }
+      renderCurrent();
+    });
+    on(db.collection(COL.rx).where('doctorId','==',uid), s => { S.doctor.prescriptions = arr(s); renderCurrent(); });
+  }
+  if (role === ROLES.ADMIN){
+    on(db.collection(COL.users), s => { S.admin.users = arr(s); renderCurrent(); });
+    on(db.collection(COL.doctors), s => { S.admin.doctors = arr(s); renderCurrent(); });
+    on(db.collection(COL.appts), s => { S.admin.appointments = arr(s); renderCurrent(); });
+    on(db.collection(COL.logs).limit(150), s => { S.admin.logs = arr(s).sort((a,b)=>toMs(b.createdAt)-toMs(a.createdAt)); renderCurrent(); });
+  }
+}
+
+/* ============================================================
+   Audit logging
+   The client writes doctor/patient action trails; ADMIN is read-only and
+   never writes here. In production these writes should move to Cloud
+   Functions so they cannot be forged — firestore.rules is the real gate.
+============================================================ */
+function logAudit(action, resource){
+  if (!S.user) return;
+  return db.collection(COL.logs).add({
+    actorId: S.user.uid, actorName: S.profile?.name || '',
+    action, resource, createdAt: sv()
+  }).catch(e => console.warn('audit log skipped:', e.code));
+}
+
+/* ============================================================
+   7. PATIENT LOGIC
+============================================================ */
+const activeAppt = a => ['pending','confirmed','rescheduled'].includes(a.status);
+
+async function bookAppointment(){
+  const doc = S.selectedDoctor;
+  if (!doc) return;
+  const date = S.ui.bookDate, time = S.ui.slot, reason = $('#book-reason')?.value.trim() || '';
+  if (!date) return formErrShow('#book-err','Pick a date for your appointment.');
+  if (!time) return formErrShow('#book-err','Select an available time slot.');
+  const apptRef = db.collection(COL.appts).doc();
+  try {
+    /* Transaction: re-check the slot INSIDE the transaction so two devices
+       can never double-book the same doctor/date/time. Firestore rules are
+       the ultimate gate; this is correctness, not security. */
+    await db.runTransaction(async tx => {
+      const dSnap = await tx.get(db.collection(COL.doctors).doc(doc.id));
+      if (!dSnap.exists) throw new Error('Doctor profile is no longer available.');
+      const slots = (dSnap.data().availability || {})[date] || [];
+      if (!slots.includes(time)) throw new Error('That slot was just taken — please pick another.');
+      const clash = await tx.get(db.collection(COL.appts)
+        .where('doctorId','==',doc.id).where('date','==',date).where('time','==',time));
+      if (clash.docs.some(d => activeAppt(d.data()))) throw new Error('That slot was just taken — please pick another.');
+      tx.set(apptRef, {
+        patientId: S.user.uid, patientName: S.profile?.name || '',
+        doctorId: doc.id, doctorName: doc.name,
+        date, time, status:'pending', reason, createdAt: sv()
+      });
+    });
+    await db.collection(COL.notifs).add({
+      recipientId: doc.id, type:'appointment',
+      title:'New appointment request',
+      body:`${S.profile?.name || 'A patient'} requested ${fmtDate(date)} at ${fmtTime(time)}.`,
+      read:false, createdAt: sv()
+    });
+    S.ui.slot = null;
+    toast('Appointment requested — the doctor will confirm shortly.', 'success');
+    navigateSub('patient','appointments');
+  } catch(e){
+    formErrShow('#book-err', e.message?.includes('slot') ? e.message : 'Booking failed: ' + friendly(e));
+  }
+}
+function formErrShow(sel, msg){ const el = $(sel); if(!el) return toast(msg,'error'); el.innerHTML = `${icon('alert')}<span>${esc(msg)}</span>`; el.classList.add('show'); }
+
+async function cancelAppointment(id){
+  const ok = await confirmDialog('Cancel this appointment?','The doctor will be notified that you cancelled.','Cancel it',{danger:true,okText:'Yes, cancel'});
+  if (!ok) return;
+  try {
+    const a = S.patient.appointments.find(x=>x.id===id);
+    await db.collection(COL.appts).doc(id).update({ status:'cancelled' });
+    if (a) await db.collection(COL.notifs).add({ recipientId:a.doctorId, type:'appointment', title:'Appointment cancelled',
+      body:`${S.profile?.name||'A patient'} cancelled ${fmtDate(a.date)} at ${fmtTime(a.time)}.`, read:false, createdAt:sv() });
+    toast('Appointment cancelled.', 'success');
+  } catch(e){ toast(friendly(e), 'error'); }
+}
+
+/* Medication actions.
+   Patients write ONLY the `status` (+actionedAt) field of their OWN reminders,
+   only while pending/sent — no edit UI for prescriptions exists at all.
+   Enforced server-side by firestore.rules; this UI is cosmetic. */
+async function markDose(id, status){
+  if (!['taken','skipped'].includes(status)) return;
+  try {
+    await db.collection(COL.reminders).doc(id).update({ status, actionedAt: sv() });
+    toast(status === 'taken' ? 'Dose marked as taken.' : 'Dose marked as skipped.', 'success');
+  } catch(e){ toast(friendly(e), 'error'); }
+}
+async function markAllRead(){
+  const unread = S.notifications.filter(n => !n.read);
+  try { await Promise.all(unread.map(n => db.collection(COL.notifs).doc(n.id).update({ read:true }))); }
+  catch(e){ toast(friendly(e), 'error'); }
+}
+
+async function savePatientProfile(e){
+  e.preventDefault();
+  const name = $('#pf-name').value.trim();
+  if (!name) return formErrShow('#pf-err','Your name cannot be empty.');
+  try {
+    await db.collection(COL.users).doc(S.user.uid).update({ name });
+    await db.collection(COL.patients).doc(S.user.uid).set({
+      dob: $('#pf-dob').value, phone: $('#pf-phone').value.trim(), emergencyContact: $('#pf-emg').value.trim()
+    }, { merge:true });
+    S.profile = { ...S.profile, name };
+    renderChrome();
+    toast('Profile saved.', 'success');
+  } catch(err){ formErrShow('#pf-err', friendly(err)); }
+}
+
+/* ---- patient view renderers ---- */
+const VIEWS = {};
+
+VIEWS['patient/dashboard'] = function(){
+  const now = Date.now();
+  const h = new Date().getHours();
+  const greet = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  const rem = S.patient.reminders;
+  const upcoming = rem.filter(r => ['pending','sent'].includes(r.status) && toMs(r.scheduledAt) >= now - 60e3);
+  const next = upcoming[0];
+  const tk = todayISO();
+  const todays = rem.filter(r => dateKeyOf(r.scheduledAt) === tk);
+  const appts = S.patient.appointments.filter(activeAppt).filter(a => a.date >= tk).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const appt = appts[0];
+  const weekAgo = now - 7*864e5;
+  const wk = rem.filter(r => toMs(r.scheduledAt) >= weekAgo && toMs(r.scheduledAt) <= now);
+  const taken = wk.filter(r=>r.status==='taken').length,
+        missed = wk.filter(r=>r.status==='missed').length,
+        skipped = wk.filter(r=>r.status==='skipped').length;
+  const doneN = taken + missed + skipped;
+  const pct = doneN ? Math.round(taken/doneN*100) : 0;
+  const notifs = S.notifications.slice(0,4);
+  const needPerm = 'Notification' in window && Notification.permission === 'default';
+
+  const nextCard = next ? `
+    <div class="card next-dose">
+      <div class="nd-ecg"><svg viewBox="0 0 300 100"><path class="ecg-line" d="M0 55h60l12-2 10-28 14 52 12-70 12 44 8 4h44l10-4 10-20 12 34 10-40 10 22 8 8h78"/></svg></div>
+      <div class="row" style="align-items:flex-start">
+        <div class="grow">
+          <div class="nd-label">Next dose</div>
+          <div class="nd-name">${esc(next.name)}</div>
+          <div class="nd-when">${esc(next.dosage || '')}${next.dosage?' · ':''}${fmtTime(next.scheduledAt)} · ${fmtDateShort(next.scheduledAt)}</div>
+        </div>
+        <span class="icon-box">${icon('capsule')}</span>
+      </div>
+      <div class="nd-count js-cd" data-cd="${toMs(next.scheduledAt)}" style="margin-top:14px">—</div>
+      <div class="nd-when">until this dose${next.instructions ? ' · ' + esc(next.instructions) : ''}</div>
+    </div>` : `
+    <div class="card">
+      <div class="row" style="margin-bottom:10px"><span class="icon-box">${icon('capsule')}</span><h3 class="card-h">Next dose</h3></div>
+      ${emptyState('checkCircle','Nothing scheduled right now','When a doctor issues a prescription, your dose schedule and countdown appear here automatically.')}`;
+
+  const apptCard = appt ? `
+    <div class="card">
+      <div class="row" style="margin-bottom:10px"><span class="icon-box blue">${icon('calendar')}</span><h3 class="card-h">Upcoming appointment</h3></div>
+      <div class="li-title" style="font-size:17px">${esc(appt.doctorName)}</div>
+      <div class="li-sub">${fmtDate(appt.date)} · ${fmtTime(appt.time)}</div>
+      <div style="margin:10px 0">${statusPill(appt.status)}</div>
+      <button class="btn btn-outline btn-sm" data-action="nav-appointments">Manage appointments</button>
+    </div>` : `
+    <div class="card">
+      <div class="row" style="margin-bottom:10px"><span class="icon-box blue">${icon('calendar')}</span><h3 class="card-h">Upcoming appointment</h3></div>
+      ${emptyState('calendarPlus','No upcoming visits','Book a consultation with a verified doctor whenever you are ready.',
+        `<button class="btn btn-primary btn-sm" data-action="nav-find">Find a doctor</button>`)}
+    </div>`;
+
+  return `
+    <div class="dash-hello">
+      <div><div class="page-h">${greet}, ${esc((S.profile?.name||'').split(' ')[0])}</div>
+      <p class="sub">${fmtDate(new Date())} — here is your care at a glance.</p></div>
+      ${needPerm ? `<button class="btn btn-outline btn-sm" data-action="enable-alerts">${icon('bell')} Enable browser alerts</button>` : ''}
+    </div>
+    <div class="dash-grid">
+      ${nextCard}
+      ${apptCard}
+      <div class="card">
+        <div class="row" style="margin-bottom:10px"><span class="icon-box">${icon('activity')}</span><h3 class="card-h">This week's check-ins</h3></div>
+        <div class="stat-n" style="font-size:34px">${taken}<span style="font-size:16px;color:var(--muted);font-weight:500"> taken</span></div>
+        <div class="adh-bar"><span style="width:${pct}%"></span></div>
+        <div class="adh-legend"><span><b>${missed}</b> missed</span><span><b>${skipped}</b> skipped</span><span><b>${pct}%</b> taken</span></div>
+        <p class="sub" style="font-size:12px;margin-top:10px">A record of your reminder interactions — not a medical assessment.</p>
+      </div>
+    </div>
+    <div class="grid g-2">
+      <div class="card">
+        <div class="row" style="margin-bottom:14px"><h3 class="card-h grow">Today's doses</h3><button class="btn-link" data-action="nav-meds">View all</button></div>
+        ${todays.length ? `<div class="list">${todays.map(doseRow).join('')}</div>`
+          : emptyState('capsule','No doses today','You have no scheduled medication for today.')}
+      </div>
+      <div class="card">
+        <div class="row" style="margin-bottom:14px"><h3 class="card-h grow">Recent notifications</h3><button class="btn-link" data-action="nav-notifs">View all</button></div>
+        ${notifs.length ? `<div class="list">${notifs.map(n => `
+          <div class="li-row notif-row ${n.read?'':'unread'}">
+            <span class="icon-box ${n.type==='prescription'?'':'blue'}" style="width:38px;height:38px;border-radius:11px">${icon(n.type==='prescription'?'filePlus':'bell')}</span>
+            <div class="li-main"><div class="li-title">${esc(n.title)}</div><div class="li-sub">${esc(n.body)}</div><div class="li-sub" style="font-size:11.5px">${fmtWhen(n.createdAt)}</div></div>
+          </div>`).join('')}</div>`
+          : emptyState('bell','All quiet','Appointment updates and prescription news will land here.')}
+      </div>
+    </div>`;
+};
+
+function doseRow(r, withActions=true){
+  const overduePast = ['pending','sent'].includes(r.status) && toMs(r.scheduledAt) < Date.now() - 15*60e3;
+  const st = overduePast ? 'missed' : r.status;
+  const canAct = withActions && ['pending','sent'].includes(r.status) && !overduePast;
+  return `
+    <div class="dose-row ${['taken'].includes(st)?'done':''}">
+      <span class="dose-time">${fmtTime(r.scheduledAt)}</span>
+      <div class="li-main"><div class="li-title">${esc(r.name)}</div><div class="li-sub">${esc(r.dosage||'')}${r.instructions?' · '+esc(r.instructions):''}</div></div>
+      ${statusPill(st)}
+      ${canAct ? `<span style="display:flex;gap:6px">
+        <button class="btn btn-primary btn-sm" data-action="mark-dose" data-id="${esc(r.id)}" data-status="taken">${icon('check')} Taken</button>
+        <button class="btn btn-ghost btn-sm" data-action="mark-dose" data-id="${esc(r.id)}" data-status="skipped">Skip</button></span>` : ''}
+    </div>`;
+}
+
+VIEWS['patient/find-doctor'] = function(){
+  const all = S.patient.doctors;
+  const specs = ['All', ...Array.from(new Set(all.map(d=>d.specialty).filter(Boolean)))].filter(s => s==='All' || all.some(d=>d.specialty===s));
+  const q = S.ui.docSearch.toLowerCase();
+  const list = all.filter(d => (S.ui.spec==='All' || d.specialty===S.ui.spec) &&
+    (!q || (d.name||'').toLowerCase().includes(q) || (d.specialty||'').toLowerCase().includes(q)));
+  return `
+    <div class="page-head"><div class="sec-h">Find a doctor</div><p class="sub">Browse verified professionals and request an appointment.</p></div>
+    <div class="row" style="margin-bottom:4px"><span style="position:relative;flex:1;max-width:420px;display:flex;align-items:center">
+      <span style="position:absolute;left:14px;color:var(--muted)">${icon('search')}</span>
+      <input class="inp" id="doc-search" placeholder="Search by name or specialty…" value="${esc(S.ui.docSearch)}" style="padding-left:44px"></span></div>
+    <div class="spec-chips">${specs.map(s=>`<button class="chip ${S.ui.spec===s?'on':''}" data-action="set-spec" data-spec="${esc(s)}">${esc(s)}</button>`).join('')}</div>
+    ${all.length === 0 ? (S.patient.doctors.length === 0 ? loadingBlock('Loading doctors…') : emptyState('search','No doctors found','Try a different search or specialty filter.'))
+      : list.length === 0 ? emptyState('search','No matches','No doctors match your current search.')
+      : `<div class="doc-grid">${list.map(d => `
+        <div class="card hover doc-card">
+          <div class="dc-head">
+            <span class="icon-box">${icon('stethoscope')}</span>
+            <div><div class="dc-name">${esc(d.name)} ${d.verificationStatus==='verified'?icon('shield'):''}</div>
+            <span class="badge">${esc(d.specialty||'General Practice')}</span></div>
+          </div>
+          <p class="sub" style="font-size:13.5px;min-height:42px">${esc((d.bio||'').slice(0,110) || 'This doctor has not added a bio yet.')}</p>
+          <button class="btn btn-primary btn-sm" style="margin-top:12px" data-action="select-doctor" data-id="${esc(d.id)}" ${d.verificationStatus!=='verified'?'disabled title="Awaiting verification"':''}>${icon('calendarPlus')} Book appointment</button>
+        </div>`).join('')}</div>`}`;
+};
+VIEWS['patient/find-doctor'].after = () => {
+  const inp = $('#doc-search');
+  if (inp) inp.addEventListener('input', () => { S.ui.docSearch = inp.value; const p=inp.selectionStart; renderCurrent(); const n=$('#doc-search'); if(n){n.focus(); n.setSelectionRange(p,p);} });
+};
+
+VIEWS['patient/book'] = function(){
+  const d = S.selectedDoctor;
+  if (!d) return `
+    <div class="page-head"><div class="sec-h">Book an appointment</div></div>
+    ${emptyState('calendarPlus','No doctor selected','Choose a doctor first and we will bring you here to pick a time.',
+      `<button class="btn btn-primary" data-action="nav-find">Browse doctors</button>`)}`;
+  return `
+    <div class="page-head" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <button class="icon-btn" data-action="nav-find" aria-label="Back">${icon('arrowLeft')}</button>
+      <div><div class="sec-h">Book with ${esc(d.name)}</div><p class="sub">${esc(d.specialty||'General Practice')}</p></div>
+    </div>
+    <div class="card" style="max-width:680px">
+      <div class="form-err" id="book-err"></div>
+      <div class="field"><label for="book-date">Preferred date</label>
+        <input class="inp" type="date" id="book-date" value="${esc(S.ui.bookDate)}" min="${todayISO()}"></div>
+      <div class="field"><label>Available times</label><div id="slot-grid">${loadingBlock('Checking availability…')}</div></div>
+      <div class="field"><label for="book-reason">Reason for visit <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <textarea class="inp" id="book-reason" placeholder="Briefly describe what you'd like help with…"></textarea></div>
+      <button class="btn btn-primary" data-action="book-confirm">${icon('send')} Request appointment</button>
+      <p class="sub" style="font-size:12.5px;margin-top:12px">Requests start as "pending" until the doctor confirms.</p>
+    </div>`;
+};
+VIEWS['patient/book'].after = () => {
+  const inp = $('#book-date');
+  if (inp) inp.addEventListener('change', () => { S.ui.bookDate = inp.value || todayISO(); loadSlots(); });
+  loadSlots();
+};
+async function loadSlots(){
+  const d = S.selectedDoctor, grid = $('#slot-grid');
+  if (!d || !grid) return;
+  const date = S.ui.bookDate;
+  grid.innerHTML = loadingBlock('Checking availability…');
+  try {
+    const dSnap = await db.collection(COL.doctors).doc(d.id).get();
+    const slots = (dSnap.data()?.availability || {})[date] || [];
+    const busy = await db.collection(COL.appts).where('doctorId','==',d.id).where('date','==',date).get();
+    const taken = new Set(busy.docs.filter(x => activeAppt(x.data())).map(x => x.data().time));
+    if (!slots.length){
+      grid.innerHTML = emptyState('calendar','No published times for this day','This doctor has not opened slots on the selected date — try another day.');
+      return;
+    }
+    grid.innerHTML = `<div class="slot-grid">${slots.map(t =>
+      `<button class="slot ${taken.has(t)?'taken':''} ${S.ui.slot===t?'sel':''}" data-action="pick-slot" data-time="${esc(t)}" ${taken.has(t)?'disabled':''}>${fmtTime(t)}</button>`).join('')}</div>`;
+  } catch(e){ grid.innerHTML = emptyState('alert','Could not load availability', friendly(e)); }
+}
+
+VIEWS['patient/appointments'] = function(){
+  const f = S.ui.apptFilter, tk = todayISO();
+  let list = [...S.patient.appointments].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  if (f==='pending') list = list.filter(a=>a.status==='pending');
+  if (f==='confirmed') list = list.filter(a=>['confirmed','rescheduled'].includes(a.status));
+  if (f==='past') list = list.filter(a=>a.date < tk || ['completed','cancelled','no-show'].includes(a.status));
+  const filters = [['all','All'],['pending','Pending'],['confirmed','Confirmed'],['past','Past']];
+  return `
+    <div class="page-head"><div class="sec-h">My appointments</div><p class="sub">Track requests, confirmed visits and history.</p></div>
+    <div class="spec-chips">${filters.map(([k,l])=>`<button class="chip ${f===k?'on':''}" data-action="appt-filter" data-f="${k}">${l}</button>`).join('')}</div>
+    ${list.length === 0 ? emptyState('calendar','No appointments here','When you request or attend consultations, they will appear in this list.',
+      `<button class="btn btn-primary btn-sm" data-action="nav-find">Find a doctor</button>`)
+      : `<div class="list">${list.map(a => `
+      <div class="li-row">
+        <span class="icon-box blue">${icon('stethoscope')}</span>
+        <div class="li-main"><div class="li-title">${esc(a.doctorName)}</div>
+          <div class="li-sub">${fmtDate(a.date)} · ${fmtTime(a.time)}${a.reason?' · '+esc(a.reason):''}</div></div>
+        ${statusPill(a.status)}
+        ${['pending','confirmed'].includes(a.status) && a.date >= tk ? `<button class="btn btn-ghost btn-sm" data-action="cancel-appt" data-id="${esc(a.id)}">Cancel</button>`:''}
+      </div>`).join('')}</div>`}`;
+};
+
+/* Prescriptions are READ-ONLY for patients — by design. There is no edit UI
+   and no code path that mutates a prescription; firestore.rules deny patient
+   writes to prescriptions/* server-side. */
+VIEWS['patient/prescriptions'] = function(){
+  const list = S.patient.prescriptions;
+  return `
+    <div class="page-head"><div class="sec-h">Prescriptions</div><p class="sub">Doctor-authored prescriptions are read-only — doses flow automatically into My Medications.</p></div>
+    ${list.length === 0 ? emptyState('fileText','No prescriptions yet','After a consultation, your doctor's prescription will appear here with its full medicine schedule.')
+      : `<div class="list">${list.map(p => `
+      <div class="card hover rx-card">
+        <div class="row" style="flex-wrap:wrap">
+          <span class="icon-box">${icon('fileText')}</span>
+          <div class="grow"><div class="li-title">${esc(p.doctorName||'Doctor')}</div>
+            <div class="li-sub">${fmtDate(p.startDate)} — ${fmtDate(p.endDate)}${p.notes?' · '+esc(p.notes):''}</div></div>
+          ${statusPill(p.status||'active')}
+        </div>
+        <div class="rx-meds" id="rxm-${esc(p.id)}">${loadingBlock('Loading medicines…')}</div>
+      </div>`).join('')}</div>`}`;
+};
+VIEWS['patient/prescriptions'].after = () => {
+  S.patient.prescriptions.forEach(async p => {
+    const box = $(`#rxm-${CSS.escape(p.id)}`);
+    if (!box) return;
+    try {
+      const s = await db.collection(COL.rx).doc(p.id).collection('medicines').get();
+      box.innerHTML = s.docs.map(m => {
+        const d = m.data();
+        return `<div class="rx-med"><span class="icon-box">${icon('capsule')}</span>
+          <div><b>${esc(d.name)}</b> <span class="badge">${esc(d.dosage||'')}</span>
+          <div class="li-sub">${d.frequencyPerDay}× daily at ${(d.times||[]).map(fmtTime).join(', ')} · ${d.durationDays} day(s)${d.instructions?' · '+esc(d.instructions):''}</div></div></div>`;
+      }).join('') || `<p class="sub" style="font-size:13.5px">No medicine details recorded.</p>`;
+    } catch(e){ box.innerHTML = `<p class="sub" style="font-size:13.5px">Could not load medicines.</p>`; }
+  });
+};
+
+VIEWS['patient/medications'] = function(){
+  const rem = S.patient.reminders;
+  const tk = todayISO(), now = Date.now();
+  const today = rem.filter(r => dateKeyOf(r.scheduledAt) === tk);
+  const upcoming = rem.filter(r => toMs(r.scheduledAt) > now && dateKeyOf(r.scheduledAt) !== tk && ['pending','sent'].includes(r.status)).slice(0,30);
+  const past = rem.filter(r => toMs(r.scheduledAt) <= now && dateKeyOf(r.scheduledAt) !== tk).slice(-20).reverse();
+  const needPerm = 'Notification' in window && Notification.permission === 'default';
+  return `
+    <div class="page-head" style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">
+      <div><div class="sec-h">My medications</div><p class="sub">Your dose schedule, generated automatically from doctor prescriptions.</p></div>
+      ${needPerm ? `<button class="btn btn-outline btn-sm" data-action="enable-alerts">${icon('bell')} Enable browser alerts</button>`:''}
+    </div>
+    ${rem.length === 0 ? `<div class="card">${emptyState('capsule','No medication schedule yet','When your doctor creates a prescription, every dose appears here with reminders — nothing to set up manually.')}</div>` : `
+    <div class="grid" style="gap:20px">
+      <div class="card"><h3 class="card-h" style="margin-bottom:14px">Today · ${fmtDate(new Date())}</h3>
+        ${today.length ? `<div class="list">${today.map(r=>doseRow(r)).join('')}</div>` : `<p class="sub" style="font-size:14px">No doses scheduled for today.</p>`}</div>
+      ${upcoming.length ? `<div class="card"><h3 class="card-h" style="margin-bottom:14px">Upcoming</h3>
+        <div class="list">${upcoming.map(r=>doseRow(r,false)).join('')}</div></div>`:''}
+      ${past.length ? `<div class="card"><h3 class="card-h" style="margin-bottom:14px">History</h3>
+        <div class="list">${past.map(r=>doseRow(r,false)).join('')}</div></div>`:''}
+    </div>`}`;
+};
+
+VIEWS['patient/history'] = function(){
+  const recs = S.patient.records;
+  return `
+    <div class="page-head"><div class="sec-h">Medical history</div><p class="sub">Your records in chronological order. Doctors can only read these during an authorized, time-limited consultation.</p></div>
+    ${recs.length === 0 ? `<div class="card">${emptyState('folder','No records yet','Entries added during consultations — allergies, conditions, notes — will build your timeline here.')}</div>`
+      : `<div class="card"><div class="timeline">${recs.map(r => `
+        <div class="tl-item">
+          <div class="row"><span class="icon-box blue" style="width:38px;height:38px;border-radius:11px">${icon(r.type==='allergy'?'alert':r.type==='condition'?'activity':'fileText')}</span>
+            <div class="grow"><div class="li-title">${esc(r.title)}</div>
+            <div class="li-sub">${fmtDate(r.createdAt)} · added by ${esc(r.createdBy||'your doctor')}</div></div>
+          <span class="badge">${esc(r.type||'record')}</span></div>
+          ${r.content?`<p class="sub" style="font-size:14px;margin-top:8px">${esc(r.content)}</p>`:''}
+        </div>`).join('')}</div></div>`}`;
+};
+
+VIEWS['patient/notifications'] = function(){
+  const list = S.notifications;
+  const unread = list.filter(n=>!n.read).length;
+  return `
+    <div class="page-head" style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">
+      <div><div class="sec-h">Notifications</div><p class="sub">${unread ? unread + ' unread' : 'You are all caught up.'}</p></div>
+      ${unread?`<button class="btn btn-outline btn-sm" data-action="read-all">${icon('check')} Mark all read</button>`:''}
+    </div>
+    ${list.length === 0 ? `<div class="card">${emptyState('bell','Nothing yet','Appointment confirmations, prescription updates and reminders arrive here.')}</div>`
+      : `<div class="list">${list.map(n => `
+      <div class="li-row notif-row ${n.read?'':'unread'}" data-action="read-one" data-id="${esc(n.id)}" role="button" tabindex="0">
+        <span class="icon-box ${n.type==='prescription'?'':'blue'}">${icon(n.type==='prescription'?'filePlus':'bell')}</span>
+        <div class="li-main"><div class="li-title">${esc(n.title)}</div><div class="li-sub">${esc(n.body)}</div></div>
+        <span class="li-sub" style="font-size:12px;white-space:nowrap">${fmtWhen(n.createdAt)}</span>
+      </div>`).join('')}</div>`}`;
+};
+
+VIEWS['patient/profile'] = function(){
+  const p = S.profile || {}, rd = S.roleDoc || {};
+  return `
+    <div class="page-head"><div class="sec-h">Profile</div><p class="sub">Keep your details current — doctors rely on them during consultations.</p></div>
+    <div class="card" style="max-width:560px">
+      <form data-form="pf-patient" novalidate>
+        <div class="form-err" id="pf-err"></div>
+        <div class="field"><label for="pf-name">Full name</label><input class="inp" id="pf-name" value="${esc(p.name||'')}"></div>
+        <div class="field"><label for="pf-email">Email</label><input class="inp" id="pf-email" value="${esc(p.email||S.user?.email||'')}" disabled></div>
+        <div class="field"><label for="pf-dob">Date of birth</label><input class="inp" type="date" id="pf-dob" value="${esc(rd.dob||'')}"></div>
+        <div class="field"><label for="pf-phone">Phone</label><input class="inp" id="pf-phone" value="${esc(rd.phone||'')}" placeholder="+1 555 000 0000"></div>
+        <div class="field"><label for="pf-emg">Emergency contact</label><input class="inp" id="pf-emg" value="${esc(rd.emergencyContact||'')}" placeholder="Name and phone number"></div>
+        <button class="btn btn-primary" type="submit">${icon('save')} Save changes</button>
+      </form>
+    </div>`;
+};
+
+/* ============================================================
+   8. DOCTOR LOGIC
+============================================================ */
+const todaysConfirmed = () => S.doctor.appointments.filter(a => a.status==='confirmed' && a.date === todayISO())
+  .sort((a,b)=>a.time.localeCompare(b.time));
+const pendingReqs = () => S.doctor.appointments.filter(a => a.status === 'pending')
+  .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+
+async function decideRequest(id, accept){
+  const a = S.doctor.appointments.find(x=>x.id===id);
+  if (!a) return;
+  const ok = await confirmDialog(accept?'Accept this request?':'Reject this request?',
+    `${a.patientName} — ${fmtDate(a.date)} at ${fmtTime(a.time)}.`, { okText: accept?'Accept':'Reject', danger:!accept });
+  if (!ok) return;
+  try {
+    await db.collection(COL.appts).doc(id).update({ status: accept ? 'confirmed' : 'cancelled' });
+    await db.collection(COL.notifs).add({ recipientId:a.patientId, type:'appointment',
+      title: accept?'Appointment confirmed':'Appointment declined',
+      body:`Dr. ${S.profile?.name||''} ${accept?'confirmed':'declined'} ${fmtDate(a.date)} at ${fmtTime(a.time)}.`,
+      read:false, createdAt:sv() });
+    logAudit(accept?'Accepted appointment request':'Rejected appointment request', `appointment:${id} (${a.date} ${a.time})`);
+    toast(accept?'Appointment confirmed.':'Request declined.', 'success');
+  } catch(e){ toast(friendly(e), 'error'); }
+}
+async function setApptStatus(id, status, label){
+  try {
+    await db.collection(COL.appts).doc(id).update({ status });
+    const a = S.doctor.appointments.find(x=>x.id===id);
+    if (a) await db.collection(COL.notifs).add({ recipientId:a.patientId, type:'appointment',
+      title:'Appointment update', body:`Your visit on ${fmtDate(a.date)} is now marked "${label}".`, read:false, createdAt:sv() });
+    logAudit(`Marked appointment ${label}`, `appointment:${id}`);
+    toast(`Marked as ${label}.`, 'success');
+  } catch(e){ toast(friendly(e), 'error'); }
+}
+async function rescheduleAppt(id){
+  const a = S.doctor.appointments.find(x=>x.id===id);
+  if (!a) return;
+  const ok = await openModal({
+    title: `${icon('calendar')} Reschedule appointment`,
+    bodyHtml: `<p style="font-size:14px">with ${esc(a.patientName)}</p>
+      <div class="field"><label for="rs-date">New date</label><input class="inp" type="date" id="rs-date" min="${todayISO()}" value="${esc(a.date)}"></div>
+      <div class="field"><label for="rs-time">New time</label><input class="inp" type="time" id="rs-time" value="${esc(a.time)}"></div>`,
+    okText:'Reschedule'
+  });
+  if (!ok) return;
+  const d = $('#rs-date').value, t = $('#rs-time').value;
+  if (!d || !t) return toast('Pick both a date and a time.', 'error');
+  try {
+    await db.collection(COL.appts).doc(id).update({ date:d, time:t, status:'rescheduled' });
+    await db.collection(COL.notifs).add({ recipientId:a.patientId, type:'appointment', title:'Appointment rescheduled',
+      body:`Dr. ${S.profile?.name||''} moved your visit to ${fmtDate(d)} at ${fmtTime(t)}.`, read:false, createdAt:sv() });
+    logAudit('Rescheduled appointment', `appointment:${id} → ${d} ${t}`);
+    toast('Appointment rescheduled.', 'success');
+  } catch(e){ toast(friendly(e), 'error'); }
+}
+
+/* Consultation — time-limited access grants.
+   access_grants/{doctorUid_patientId}: {status:'active', expiresAt: now+1h, appointmentId}.
+   firestore.rules let the doctor read patients/{pid}/records ONLY while this
+   grant is active and unexpired (checked against request.time server-side). */
+async function openConsult(apptId){
+  const a = S.doctor.appointments.find(x=>x.id===apptId);
+  if (!a) return;
+  const grantId = `${S.user.uid}_${a.patientId}`;
+  const expiresAt = new Date(Date.now() + CONSULT_WINDOW_MS);
+  try {
+    // Refresh (or create) the 1-hour window for this doctor–patient pair.
+    await db.collection(COL.grants).doc(grantId).set({
+      doctorId:S.user.uid, patientId:a.patientId, status:'active',
+      expiresAt: TS().fromDate(expiresAt), appointmentId: apptId, updatedAt: sv()
+    });
+    logAudit('Opened time-limited patient history', `patient:${a.patientId} via appointment:${apptId}`);
+    const [pSnap, recSnap, rxSnap] = await Promise.all([
+      db.collection(COL.patients).doc(a.patientId).get(),
+      db.collection(COL.patients).doc(a.patientId).collection('records').get(),
+      db.collection(COL.rx).where('patientId','==',a.patientId).get()
+    ]);
+    S.consultData = {
+      profile: pSnap.exists ? pSnap.data() : {},
+      records: recSnap.docs.map(d=>({id:d.id,...d.data()})).sort((x,y)=>toMs(x.createdAt)-toMs(y.createdAt)),
+      rx: rxSnap.docs.map(d=>({id:d.id,...d.data()})).sort((x,y)=>toMs(y.createdAt)-toMs(x.createdAt))
+    };
+    S.activeConsult = { grantId, patientId:a.patientId, patientName:a.patientName, appointmentId:apptId, expiresAt: expiresAt.getTime() };
+    navigateSub('doctor','consultation');
+    toast('History access opened for 1 hour — it closes automatically.', 'success');
+  } catch(e){ toast('Could not open consultation: ' + friendly(e), 'error'); }
+}
+async function closeConsult(reason='closed', silent=false){
+  const c = S.activeConsult;
+  if (c){
+    try { await db.collection(COL.grants).doc(c.grantId).update({ status: reason }); } catch(e){}
+    logAudit(reason === 'expired' ? 'Consultation access expired' : 'Closed consultation access early', `patient:${c.patientId}`);
+  }
+  S.activeConsult = null; S.consultData = null;
+  if (!silent){ toast('History access closed.', 'info'); renderCurrent(); }
+  else if (currentSub() === 'consultation') renderCurrent();
+}
+
+/* ---- doctor view renderers ---- */
+VIEWS['doctor/dashboard'] = function(){
+  const tdc = todaysConfirmed(), pend = pendingReqs();
+  const patients = new Set(S.doctor.appointments.map(a=>a.patientId)).size;
+  const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate()+7);
+  const wk = S.doctor.appointments.filter(a => ['confirmed','rescheduled'].includes(a.status) && a.date >= todayISO() && a.date <= dateKeyOf(weekEnd)).length;
+  const stat = (ic, n, l, blue) => `<div class="card hover stat-card"><span class="icon-box ${blue?'blue':''}">${icon(ic)}</span><div><div class="stat-n" style="font-size:34px">${n}</div><div class="sub">${esc(l)}</div></div></div>`;
+  return `
+    <div class="page-head"><div class="sec-h">Welcome, Dr. ${esc((S.profile?.name||'').replace(/^Dr\.?\s*/i,'').split(' ')[0])}</div>
+      <p class="sub">${fmtDate(new Date())} — ${S.roleDoc?.verificationStatus==='verified'?'Your profile is verified.':'Your profile is awaiting admin verification.'}</p></div>
+    <div class="stat-grid" style="margin-bottom:20px">
+      ${stat('calendar', tdc.length, 'Today\u2019s appointments')}
+      ${stat('clipboard', pend.length, 'Pending requests', true)}
+      ${stat('users', patients, 'Patients')}
+      ${stat('clock', wk, 'This week')}
+    </div>
+    <div class="split">
+      <div class="card">
+        <div class="row" style="margin-bottom:14px"><h3 class="card-h grow">Today's schedule</h3><button class="btn-link" data-action="nav-schedule">Full schedule</button></div>
+        ${tdc.length ? `<div class="list">${tdc.map(a=>`
+          <div class="li-row"><span class="dose-time">${fmtTime(a.time)}</span>
+            <div class="li-main"><div class="li-title">${esc(a.patientName)}</div><div class="li-sub">${esc(a.reason||'Consultation')}</div></div>
+            <button class="btn btn-primary btn-sm" data-action="open-consult" data-id="${esc(a.id)}">${icon('stethoscope')} Consult</button></div>`).join('')}</div>`
+          : emptyState('calendar','No visits today','Confirmed appointments for today will appear here.')}
+      </div>
+      <div class="card">
+        <div class="row" style="margin-bottom:14px"><h3 class="card-h grow">New requests</h3><button class="btn-link" data-action="nav-requests">Review all</button></div>
+        ${pend.length ? `<div class="list">${pend.slice(0,4).map(a=>`
+          <div class="li-row"><div class="li-main"><div class="li-title">${esc(a.patientName)}</div>
+            <div class="li-sub">${fmtDate(a.date)} · ${fmtTime(a.time)}</div></div>${statusPill(a.status)}</div>`).join('')}</div>`
+          : emptyState('checkCircle','Inbox zero','No pending appointment requests.')}
+      </div>
+    </div>`;
+};
+
+VIEWS['doctor/requests'] = function(){
+  const pend = pendingReqs();
+  return `
+    <div class="page-head"><div class="sec-h">Appointment requests</div><p class="sub">Accept to confirm a visit, or decline politely.</p></div>
+    ${pend.length === 0 ? `<div class="card">${emptyState('checkCircle','No pending requests','New appointment requests from patients will appear here.')}</div>`
+      : `<div class="list">${pend.map(a=>`
+      <div class="li-row" style="flex-wrap:wrap">
+        <span class="icon-box">${icon('user')}</span>
+        <div class="li-main"><div class="li-title">${esc(a.patientName)}</div>
+          <div class="li-sub">${fmtDate(a.date)} · ${fmtTime(a.time)}${a.reason?' · '+esc(a.reason):''}</div></div>
+        ${statusPill(a.status)}
+        <span style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" data-action="accept-req" data-id="${esc(a.id)}">${icon('check')} Accept</button>
+          <button class="btn btn-ghost btn-sm" data-action="reject-req" data-id="${esc(a.id)}">Decline</button></span>
+      </div>`).join('')}</div>`}`;
+};
+
+VIEWS['doctor/schedule'] = function(){
+  const tab = S.ui.schedTab;
+  const confirmed = S.doctor.appointments.filter(a=>['confirmed','rescheduled'].includes(a.status));
+  const tk = todayISO();
+  const in7 = dateKeyOf(new Date(Date.now()+7*864e5));
+  let list;
+  if (tab==='today') list = confirmed.filter(a=>a.date===tk);
+  else list = confirmed.filter(a=>a.date>=tk && a.date<=in7);
+  list.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const byDay = {};
+  list.forEach(a => { (byDay[a.date] = byDay[a.date]||[]).push(a); });
+  return `
+    <div class="page-head"><div class="sec-h">Schedule</div><p class="sub">Confirmed and rescheduled visits.</p></div>
+    <div class="spec-chips">
+      <button class="chip ${tab==='today'?'on':''}" data-action="sched-tab" data-t="today">Today</button>
+      <button class="chip ${tab==='week'?'on':''}" data-action="sched-tab" data-t="week">Next 7 days</button>
+    </div>
+    ${list.length===0 ? `<div class="card">${emptyState('calendar','Nothing scheduled '+(tab==='today'?'today':'this week'),'Confirmed appointments will show up here with quick actions.')}</div>`
+      : Object.entries(byDay).map(([date, items]) => `
+      <div class="day-block"><div class="db-head">${icon('calendar')}${fmtDate(date)}${date===tk?' · Today':''}</div>
+        <div class="list">${items.map(a=>`
+          <div class="li-row" style="flex-wrap:wrap">
+            <span class="dose-time">${fmtTime(a.time)}</span>
+            <div class="li-main"><div class="li-title">${esc(a.patientName)}</div><div class="li-sub">${esc(a.reason||'Consultation')}</div></div>
+            ${statusPill(a.status)}
+            <span style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-primary btn-sm" data-action="open-consult" data-id="${esc(a.id)}">${icon('stethoscope')} Consult</button>
+              ${a.date===tk&&a.status==='confirmed'?`<button class="btn btn-ghost btn-sm" data-action="appt-complete" data-id="${esc(a.id)}">Done</button>
+              <button class="btn btn-ghost btn-sm" data-action="appt-noshow" data-id="${esc(a.id)}">No-show</button>`:''}
+              <button class="btn btn-ghost btn-sm" data-action="appt-resched" data-id="${esc(a.id)}">Reschedule</button>
+            </span>
+          </div>`).join('')}</div></div>`).join('')}`;
+};
+
+VIEWS['doctor/consultation'] = function(){
+  const c = S.activeConsult;
+  if (c && c.expiresAt > Date.now()){
+    const d = S.consultData || { profile:{}, records:[], rx:[] };
+    return `
+      <div class="card consult-banner" style="margin-bottom:20px">
+        <span class="icon-box" style="background:rgba(255,255,255,.16);color:#fff">${icon('stethoscope')}</span>
+        <div class="grow"><div class="li-title" style="color:#fff;font-size:18px">${esc(c.patientName)}</div>
+          <span class="cd-label" style="color:#fff">Authorized history access</span></div>
+        <div style="text-align:center"><span class="cd js-cd" data-cd="${c.expiresAt}">--:--</span><span class="cd-label" style="color:#fff">remaining</span></div>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.16);color:#fff" data-action="close-consult">Close access</button>
+      </div>
+      <div class="split">
+        <div class="grid" style="gap:20px">
+          <div class="card">
+            <h3 class="card-h" style="margin-bottom:14px">Medical history</h3>
+            ${d.records.length ? `<div class="timeline">${d.records.map(r=>`
+              <div class="tl-item"><div class="li-title">${esc(r.title)}</div>
+                <div class="li-sub">${fmtDate(r.createdAt)} · ${esc(r.type||'record')} · by ${esc(r.createdBy||'—')}</div>
+                ${r.content?`<p class="sub" style="font-size:14px;margin-top:4px">${esc(r.content)}</p>`:''}</div>`).join('')}</div>`
+              : emptyState('folder','No records on file','This patient has no medical records yet.')}
+          </div>
+          <div class="card">
+            <h3 class="card-h" style="margin-bottom:14px">Past prescriptions</h3>
+            ${d.rx.length ? `<div class="list">${d.rx.map(p=>`
+              <div class="li-row"><span class="icon-box" style="width:38px;height:38px;border-radius:11px">${icon('fileText')}</span>
+                <div class="li-main"><div class="li-title">${fmtDate(p.startDate)} — ${fmtDate(p.endDate)}</div>
+                <div class="li-sub">by ${esc(p.doctorName||'—')}</div></div>${statusPill(p.status||'active')}</div>`).join('')}</div>`
+              : emptyState('fileText','No previous prescriptions','Anything you prescribe will also be listed here afterwards.')}
+          </div>
+        </div>
+        <div class="grid" style="gap:20px">
+          <div class="card">
+            <h3 class="card-h" style="margin-bottom:14px">Patient information</h3>
+            <div class="list" style="font-size:14px">
+              <div class="row">${icon('user')}<span>${esc(c.patientName)}</span></div>
+              <div class="row">${icon('calendar')}<span class="sub">DOB: ${d.profile.dob?fmtDate(d.profile.dob):'—'}</span></div>
+              <div class="row">${icon('phone')}<span class="sub">${esc(d.profile.phone||'—')}</span></div>
+              <div class="row">${icon('alert')}<span class="sub">Emergency: ${esc(d.profile.emergencyContact||'—')}</span></div>
+            </div>
+            <button class="btn btn-primary" style="width:100%;margin-top:18px" data-action="goto-builder">${icon('filePlus')} Create prescription</button>
+            <p class="sub" style="font-size:12px;margin-top:10px">Access expires automatically in 1 hour. Every open is audit-logged.</p>
+          </div>
+        </div>
+      </div>`;
+  }
+  /* picker / closed state */
+  const today = todaysConfirmed();
+  return `
+    <div class="page-head"><div class="sec-h">Consultation</div>
+      <p class="sub">Open a patient's history during their visit. Access is time-limited to one hour, then closes automatically.</p></div>
+    ${today.length === 0 ? `<div class="card">${emptyState('stethoscope','No confirmed visits today','Confirm a request first, then open the consultation here to review history and prescribe.')}</div>`
+      : `<div class="list">${today.map(a=>`
+        <div class="li-row"><span class="icon-box">${icon('user')}</span>
+          <div class="li-main"><div class="li-title">${esc(a.patientName)}</div>
+            <div class="li-sub">${fmtTime(a.time)}${a.reason?' · '+esc(a.reason):''}</div></div>
+          <button class="btn btn-primary btn-sm" data-action="open-consult" data-id="${esc(a.id)}">${icon('refresh')} Open history (1h)</button>
+        </div>`).join('')}</div>`}`;
+};
+
+/* ---- prescription builder ---- */
+VIEWS['doctor/builder'] = function(){
+  const ctx = S.rxContext;
+  if (!ctx) return `
+    <div class="page-head"><div class="sec-h">Prescription builder</div></div>
+    <div class="card">${emptyState('filePlus','Open a consultation first','Prescriptions are always tied to a patient and appointment — open a consultation, then create the prescription from there.',
+      `<button class="btn btn-primary btn-sm" data-action="nav-consult">Go to consultation</button>`)}</div>`;
+  const startDefault = todayISO();
+  return `
+    <div class="page-head" style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">
+      <div><div class="sec-h">Prescription builder</div>
+        <p class="sub">For <b>${esc(ctx.patientName)}</b> — doses and reminders are generated only after full validation. Schedules are never guessed.</p></div>
+      <button class="btn btn-ghost btn-sm" data-action="nav-consult">${icon('arrowLeft')} Back to consultation</button>
+    </div>
+    <div class="split">
+      <form data-form="prescription" id="rx-form" novalidate>
+        <div class="card" style="margin-bottom:20px">
+          <div class="form-err" id="rx-err"></div>
+          <div class="grid g-2">
+            <div class="field"><label for="rx-start">Start date</label><input class="inp" type="date" id="rx-start" value="${startDefault}" min="${startDefault}"></div>
+          </div>
+          <div class="field"><label for="rx-notes">General instructions</label><textarea class="inp" id="rx-notes" placeholder="e.g. Take after meals with a full glass of water" style="min-height:70px"></textarea></div>
+        </div>
+        <div id="rx-medicines"></div>
+        <button type="button" class="btn btn-outline btn-sm" data-action="add-rx-med" style="margin-bottom:20px">${icon('plus')} Add medicine</button>
+        <div class="row">
+          <button class="btn btn-primary" type="submit">${icon('send')} Issue prescription & generate reminders</button>
+        </div>
+      </form>
+      <div class="card">
+        <h3 class="card-h" style="margin-bottom:6px">Live schedule preview</h3>
+        <p class="sub" style="font-size:13px;margin-bottom:12px">Every dose datetime, generated by the same validator used on save.</p>
+        <div class="preview-box" id="rx-preview">${emptyState('clock','Waiting for details','Add a medicine with frequency, exact times and duration to preview the full dose schedule.')}</div>
+      </div>
+    </div>`;
+};
+function rxRowHTML(i, data={}){
+  const freq = data.frequencyPerDay || 2;
+  const times = data.times && data.times.length ? data.times : Array.from({length:freq},(_,k)=> k===0?'08:00':k===1?'20:00':'');
+  return `
+    <div class="rx-row" data-idx="${i}">
+      <div class="rr-head"><span class="icon-box" style="width:36px;height:36px;border-radius:10px">${icon('capsule')}</span>
+        <b class="grow">Medicine ${i+1}</b>
+        <button type="button" class="icon-btn" data-action="remove-rx-med" aria-label="Remove medicine">${icon('trash')}</button></div>
+      <div class="grid g-2">
+        <div class="field"><label>Medicine name</label><input class="inp rx-name" placeholder="e.g. Amoxicillin" value="${esc(data.name||'')}"></div>
+        <div class="field"><label>Dosage</label><input class="inp rx-dosage" placeholder="e.g. 1 tablet (500 mg)" value="${esc(data.dosage||'')}"></div>
+        <div class="field"><label>Doses per day</label><input class="inp rx-freq" type="number" min="1" max="12" step="1" value="${freq}"></div>
+        <div class="field"><label>Duration (days)</label><input class="inp rx-duration" type="number" min="1" max="180" step="1" value="${data.durationDays||7}"></div>
+      </div>
+      <div class="field" style="margin-bottom:0"><label>Exact times (must equal the number of doses per day)</label>
+        <div class="rx-times">${times.slice(0,freq).map(t=>`<input class="inp rx-time" type="time" value="${esc(t)}">`).join('')}</div></div>
+      <div class="field" style="margin:14px 0 0"><label>Instructions (optional)</label><input class="inp rx-instr" placeholder="e.g. After breakfast" value="${esc(data.instructions||'')}"></div>
+    </div>`;
+}
+VIEWS['doctor/builder'].after = () => { addRxRow(); updateRxPreview(); };
+function addRxRow(data){ $('#rx-medicines').insertAdjacentHTML('beforeend', rxRowHTML($$('#rx-medicines .rx-row').length, data)); }
+function readRxRows(){
+  return $$('#rx-medicines .rx-row').map(row => ({
+    name: $('.rx-name', row).value,
+    dosage: $('.rx-dosage', row).value,
+    frequencyPerDay: parseInt($('.rx-freq', row).value, 10),
+    times: $$('.rx-time', row).map(t => t.value),
+    durationDays: parseInt($('.rx-duration', row).value, 10),
+    instructions: $('.rx-instr', row).value
+  }));
+}
+let rxDebounce = null;
+function schedulePreview(){ clearTimeout(rxDebounce); rxDebounce = setTimeout(updateRxPreview, 250); }
+function updateRxPreview(){
+  const box = $('#rx-preview');
+  if (!box) return;
+  const rows = readRxRows();
+  const filled = rows.filter(r => r.name.trim() || r.times.some(Boolean));
+  if (!filled.length){ box.innerHTML = emptyState('clock','Waiting for details','Add a medicine with frequency, exact times and duration to preview the schedule.'); return; }
+  try {
+    const doses = generateSchedule({ prescriptionId:'preview', medicines: rows, startDate: $('#rx-start').value || todayISO() });
+    const byDay = {};
+    doses.forEach(d => { (byDay[dateKeyOf(d.scheduledAt)] = byDay[dateKeyOf(d.scheduledAt)]||[]).push(d); });
+    box.innerHTML = `<p style="font-size:13px;margin-bottom:12px"><b style="color:var(--teal-dark)">${doses.length}</b> doses across ${Object.keys(byDay).length} day(s)</p>` +
+      Object.entries(byDay).map(([day, ds]) => `
+        <div class="preview-day"><b>${fmtDate(day)}</b>
+          <div class="pv-times">${ds.map(d=>`<span class="pv-dose" title="${esc(d.name)}">${fmtTime(d.scheduledAt)} · ${esc(d.name)}</span>`).join('')}</div>
+        </div>`).join('');
+  } catch(e){
+    box.innerHTML = `<div class="note" style="border-color:rgba(255,122,110,.5)">${icon('alert')}<span style="color:#C2463B">${esc(e.message)}</span></div>`;
+  }
+}
+async function submitPrescription(e){
+  e.preventDefault();
+  const ctx = S.rxContext;
+  if (!ctx) return;
+  const rows = readRxRows();
+  const startDate = $('#rx-start').value;
+  const notes = $('#rx-notes').value.trim();
+  clearErr('#rx-err');
+  if (!rows.some(r => r.name.trim())) return formErrShow('#rx-err','Add at least one medicine with a name.');
+  if (rows.length > 10) return formErrShow('#rx-err','Please limit prescriptions to 10 medicines.');
+  const pRef = db.collection(COL.rx).doc();
+  let doses;
+  try {
+    doses = generateSchedule({ prescriptionId: pRef.id, medicines: rows, startDate });
+  } catch(err){ return formErrShow('#rx-err', err.message); }
+  if (doses.length > 400) return formErrShow('#rx-err', `This would create ${doses.length} reminders — please shorten the duration (max 400 doses).`);
+  const maxDur = Math.max(...rows.map(r => Number(r.durationDays)||1));
+  const end = toDate(startDate); end.setDate(end.getDate() + maxDur - 1);
+  try {
+    const batch = db.batch();
+    batch.set(pRef, {
+      patientId: ctx.patientId, patientName: ctx.patientName, doctorId: S.user.uid, doctorName: S.profile?.name || '',
+      appointmentId: ctx.appointmentId, startDate, endDate: dateKeyOf(end), status:'active', notes, createdAt: sv()
+    });
+    rows.forEach((m, i) => {
+      const mRef = pRef.collection('medicines').doc();
+      batch.set(mRef, { name:m.name.trim(), dosage:m.dosage.trim(), frequencyPerDay:Number(m.frequencyPerDay),
+        times:m.times, durationDays:Number(m.durationDays), instructions:m.instructions.trim() });
+      doses.filter(d => d.medicineIndex === i).forEach(d => {
+        batch.set(db.collection(COL.reminders).doc(d.reminderId), {
+          patientId: ctx.patientId, prescriptionId: pRef.id, medicineId: mRef.id,
+          name: d.name, dosage: d.dosage, scheduledAt: TS().fromDate(d.scheduledAt),
+          status:'pending', actionedAt: null
+        }); // deterministic ID → safe to re-issue without duplicates
+      });
+    });
+    batch.set(db.collection(COL.notifs).doc(), {
+      recipientId: ctx.patientId, type:'prescription', title:'New prescription from ' + (S.profile?.name||'your doctor'),
+      body:`${rows.length} medicine(s), ${doses.length} scheduled doses starting ${fmtDate(startDate)}. Reminders are active.`,
+      read:false, createdAt: sv()
+    });
+    batch.set(db.collection(COL.logs).doc(), {
+      actorId:S.user.uid, actorName:S.profile?.name||'', action:'Created prescription',
+      resource:`prescription:${pRef.id} for patient:${ctx.patientId} (${doses.length} doses)`, createdAt: sv()
+    });
+    await batch.commit();
+    logAudit('Issued prescription', `appointment:${ctx.appointmentId}`);
+    toast(`Prescription issued — ${doses.length} reminders scheduled.`, 'success');
+    S.rxContext = null;
+    closeConsult('closed', true);
+    navigateSub('doctor','consults');
+  } catch(err){ formErrShow('#rx-err', friendly(err)); }
+}
+
+VIEWS['doctor/consults'] = function(){
+  const done = S.doctor.appointments.filter(a => a.status==='completed').sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const rxCount = S.doctor.prescriptions.length;
+  return `
+    <div class="page-head"><div class="sec-h">My consultations</div><p class="sub">${rxCount} prescription(s) issued · completed visits below.</p></div>
+    ${done.length === 0 ? `<div class="card">${emptyState('clock','No completed consultations yet','Once you mark visits as done, your consultation history builds here.')}</div>`
+      : `<div class="list">${done.map(a=>`
+        <div class="li-row"><span class="icon-box">${icon('stethoscope')}</span>
+          <div class="li-main"><div class="li-title">${esc(a.patientName)}</div>
+            <div class="li-sub">${fmtDate(a.date)} · ${fmtTime(a.time)}${a.reason?' · '+esc(a.reason):''}</div></div>
+          ${statusPill(a.status)}</div>`).join('')}</div>`}`;
+};
+
+/* Doctor profile + availability */
+const AVAIL_SLOTS = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00'];
+VIEWS['doctor/profile'] = function(){
+  const p = S.profile || {}, rd = S.roleDoc || {};
+  if (!S.ui.availDraft) S.ui.availDraft = { ...(rd.availability||{}) };
+  const draft = S.ui.availDraft;
+  return `
+    <div class="page-head"><div class="sec-h">Profile & availability</div><p class="sub">Patients book from the slots you publish per date.</p></div>
+    <div class="split">
+      <form data-form="pf-doctor" class="card" novalidate>
+        <div class="form-err" id="pf-err"></div>
+        <div class="field"><label for="pf-name">Full name</label><input class="inp" id="pf-name" value="${esc(p.name||'')}"></div>
+        <div class="field"><label for="pf-email">Email</label><input class="inp" id="pf-email" value="${esc(p.email||S.user?.email||'')}" disabled></div>
+        <div class="field"><label for="pf-spec">Specialty</label><input class="inp" id="pf-spec" value="${esc(rd.specialty||'')}"></div>
+        <div class="field"><label for="pf-bio">Short bio</label><textarea class="inp" id="pf-bio" placeholder="Tell patients about your experience…">${esc(rd.bio||'')}</textarea></div>
+        <button class="btn btn-primary" type="submit">${icon('save')} Save profile</button>
+      </form>
+      <div class="card">
+        <h3 class="card-h" style="margin-bottom:12px">Availability</h3>
+        <div class="field"><label for="avail-date">Pick a date</label><input class="inp" type="date" id="avail-date" min="${todayISO()}"></div>
+        <div id="avail-slots-wrap"><p class="sub" style="font-size:13.5px">Choose a date to toggle hourly slots (09:00–17:00).</p></div>
+        <div id="avail-dates" style="margin-top:16px">
+          ${Object.keys(draft).length ? Object.keys(draft).sort().map(d=>`
+            <div class="li-row" style="padding:10px 14px;margin-bottom:8px">
+              <div class="li-main"><div class="li-title" style="font-size:14px">${fmtDate(d)}</div>
+              <div class="li-sub">${draft[d].length} slot(s): ${draft[d].map(fmtTime).join(', ')}</div></div>
+              <button class="icon-btn" data-action="remove-avail-date" data-d="${esc(d)}" aria-label="Remove date">${icon('trash')}</button></div>`).join('')
+            : `<p class="sub" style="font-size:13.5px">No availability published yet — patients can't book until you add dates.</p>`}
+        </div>
+        <button class="btn btn-primary btn-sm" style="margin-top:14px" data-action="save-availability">${icon('save')} Publish availability</button>
+      </div>
+    </div>`;
+};
+VIEWS['doctor/profile'].after = () => {
+  const inp = $('#avail-date');
+  if (inp) inp.addEventListener('change', renderAvailSlots);
+};
+function renderAvailSlots(){
+  const d = $('#avail-date')?.value;
+  const wrap = $('#avail-slots-wrap');
+  if (!wrap) return;
+  if (!d){ wrap.innerHTML = `<p class="sub" style="font-size:13.5px">Choose a date to toggle hourly slots (09:00–17:00).</p>`; return; }
+  const cur = new Set(S.ui.availDraft[d] || []);
+  wrap.innerHTML = `<div class="avail-slots">${AVAIL_SLOTS.map(t =>
+    `<button type="button" class="slot ${cur.has(t)?'sel':''}" data-action="toggle-slot" data-t="${t}">${fmtTime(t)}</button>`).join('')}</div>`;
+}
+async function saveDoctorProfile(e){
+  e.preventDefault();
+  const name = $('#pf-name').value.trim(), spec = $('#pf-spec').value.trim();
+  if (!name) return formErrShow('#pf-err','Your name cannot be empty.');
+  if (!spec) return formErrShow('#pf-err','Please add your specialty.');
+  try {
+    await db.collection(COL.users).doc(S.user.uid).update({ name });
+    await db.collection(COL.doctors).doc(S.user.uid).update({ name, specialty: spec, bio: $('#pf-bio').value.trim() });
+    S.profile = { ...S.profile, name };
+    renderChrome(); toast('Profile saved.', 'success');
+  } catch(err){ formErrShow('#pf-err', friendly(err)); }
+}
+async function saveAvailability(){
+  try {
+    await db.collection(COL.doctors).doc(S.user.uid).update({ availability: S.ui.availDraft });
+    toast('Availability published — patients can now book these slots.', 'success');
+  } catch(e){ toast(friendly(e), 'error'); }
+}
+
+/* ============================================================
+   9. ADMIN LOGIC
+   Admin is read-only for audit_logs and never issues role claims —
+   claims are set via the Firebase console / a secured Admin SDK flow.
+============================================================ */
+VIEWS['admin/dashboard'] = function(){
+  const u = S.admin.users, d = S.admin.doctors, a = S.admin.appointments;
+  const stat = (ic,n,l,blue)=>`<div class="card hover stat-card"><span class="icon-box ${blue?'blue':''}">${icon(ic)}</span><div><div class="stat-n" style="font-size:34px">${n}</div><div class="sub">${esc(l)}</div></div></div>`;
+  const unv = d.filter(x=>x.verificationStatus!=='verified').length;
+  return `
+    <div class="page-head"><div class="sec-h">Platform overview</div><p class="sub">Live counts across MediCare+.</p></div>
+    <div class="stat-grid" style="margin-bottom:20px">
+      ${stat('users', u.length, 'Total users')}
+      ${stat('user', u.filter(x=>x.role==='patient').length, 'Patients')}
+      ${stat('stethoscope', d.length, 'Doctors', true)}
+      ${stat('calendar', a.length, 'Appointments', true)}
+    </div>
+    <div class="grid g-2">
+      <div class="card hover"><div class="row"><span class="icon-box">${icon('shield')}</span>
+        <div class="grow"><div class="li-title">${unv} doctor(s) awaiting verification</div><div class="li-sub">Review credentials before granting the verified badge.</div></div>
+        <button class="btn btn-primary btn-sm" data-action="nav-verify">Review</button></div></div>
+      <div class="card hover"><div class="row"><span class="icon-box blue">${icon('fileText')}</span>
+        <div class="grow"><div class="li-title">${S.admin.logs.length} audit entries</div><div class="li-sub">Who did what, and when — read-only.</div></div>
+        <button class="btn btn-outline btn-sm" data-action="nav-logs">Open logs</button></div></div>
+    </div>`;
+};
+VIEWS['admin/users'] = function(){
+  const list = [...S.admin.users].sort((a,b)=>toMs(b.createdAt)-toMs(a.createdAt));
+  return `
+    <div class="page-head"><div class="sec-h">Users</div><p class="sub">All accounts. Role claims are managed via the Firebase console / Admin SDK — never from the client.</p></div>
+    ${list.length===0 ? `<div class="card">${emptyState('users','No users yet','Accounts appear here as patients and doctors register.')}</div>`
+      : `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th></th></tr></thead><tbody>
+      ${list.map(u=>`<tr><td><b>${esc(u.name||'—')}</b></td><td>${esc(u.email||'')}</td>
+        <td><span class="badge">${esc(u.role||'?')}</span></td><td>${statusPill(u.status||'active')}</td>
+        <td class="sub">${u.createdAt?fmtDate(u.createdAt):'—'}</td>
+        <td>${u.id!==S.user.uid?`<button class="btn btn-ghost btn-sm" data-action="toggle-user" data-id="${esc(u.id)}" data-status="${esc(u.status||'active')}">${(u.status||'active')==='active'?'Disable':'Enable'}</button>`:'<span class="sub">you</span>'}</td></tr>`).join('')}
+      </tbody></table></div>`}`;
+};
+VIEWS['admin/verification'] = function(){
+  const docs = S.admin.doctors;
+  return `
+    <div class="page-head"><div class="sec-h">Doctor verification</div><p class="sub">Only verified doctors are bookable by patients.</p></div>
+    ${docs.length===0 ? `<div class="card">${emptyState('stethoscope','No doctor accounts','Doctors appear here once they register.')}</div>`
+      : `<div class="verif-grid">${docs.map(d=>`
+      <div class="card hover">
+        <div class="dc-head"><span class="icon-box">${icon('stethoscope')}</span>
+          <div class="grow"><div class="li-title">${esc(d.name)}</div><div class="li-sub">${esc(d.specialty||'—')}</div></div>
+          ${statusPill(d.verificationStatus||'unverified')}</div>
+        <p class="sub" style="font-size:13.5px;min-height:38px">${esc(d.bio||'No bio provided.')}</p>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          ${d.verificationStatus==='verified'
+            ? `<button class="btn btn-ghost btn-sm" data-action="unverify-doctor" data-id="${esc(d.id)}">Revoke</button>`
+            : `<button class="btn btn-primary btn-sm" data-action="verify-doctor" data-id="${esc(d.id)}">${icon('shield')} Verify</button>`}
+        </div>
+      </div>`).join('')}</div>`}`;
+};
+VIEWS['admin/appointments'] = function(){
+  const list = [...S.admin.appointments].sort((a,b)=>(b.date+ (b.time||'')).localeCompare(a.date+(a.time||'')));
+  return `
+    <div class="page-head"><div class="sec-h">Appointments</div><p class="sub">Every appointment on the platform.</p></div>
+    ${list.length===0 ? `<div class="card">${emptyState('calendar','No appointments yet','Bookings appear here in real time.')}</div>`
+      : `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Patient</th><th>Doctor</th><th>When</th><th>Reason</th><th>Status</th></tr></thead><tbody>
+      ${list.map(a=>`<tr><td><b>${esc(a.patientName||'—')}</b></td><td>${esc(a.doctorName||'—')}</td>
+        <td>${fmtDate(a.date)} · ${fmtTime(a.time)}</td><td class="sub">${esc(a.reason||'—')}</td><td>${statusPill(a.status)}</td></tr>`).join('')}
+      </tbody></table></div>`}`;
+};
+VIEWS['admin/logs'] = function(){
+  const list = S.admin.logs;
+  return `
+    <div class="page-head"><div class="sec-h">Audit logs</div><p class="sub">Who / what / when. Read-only — the admin client never writes logs.</p></div>
+    ${list.length===0 ? `<div class="card">${emptyState('fileText','No activity logged yet','Consultation access, prescriptions and appointment actions will be recorded here.')}</div>`
+      : `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Who</th><th>What</th><th>Resource</th><th>When</th></tr></thead><tbody>
+      ${list.map(l=>`<tr><td><b>${esc(l.actorName||l.actorId||'—')}</b></td><td>${esc(l.action||'')}</td>
+        <td class="sub">${esc(l.resource||'')}</td><td class="sub">${l.createdAt?fmtDate(l.createdAt)+' · '+fmtTime(l.createdAt):'—'}</td></tr>`).join('')}
+      </tbody></table></div>`}`;
+};
+
+/* ============================================================
+   10. REMINDER TICKER — due-now toasts + browser notifications,
+       past-due unhandled doses auto-show as "missed"
+============================================================ */
+function startTimers(){
+  stopTimers();
+  S.clock = setInterval(() => { // countdown refresh (next dose, consultation window)
+    const now = Date.now();
+    $$('.js-cd').forEach(el => { el.textContent = fmtRemain((+el.dataset.cd) - now); });
+    if (S.activeConsult && now > S.activeConsult.expiresAt) closeConsult('expired', currentSub() !== 'consultation');
+  }, 1000);
+  S.ticker = setInterval(checkReminders, 20000);
+  checkReminders();
+}
+function checkReminders(){
+  if (!S.user || S.role !== ROLES.PATIENT) return;
+  const now = Date.now();
+  S.patient.reminders.forEach(r => {
+    const t = toMs(r.scheduledAt);
+    const id = r.id;
+    if (['pending','sent'].includes(r.status)){
+      if (t <= now + 60e3 && t > now - 15*60e3){
+        if (!S.notified.has(id)){
+          S.notified.add(id);
+          toast(`Medication due: ${r.name}${r.dosage?' ('+r.dosage+')':''} — scheduled for ${fmtTime(r.scheduledAt)}.`, 'info', 9000);
+          if ('Notification' in window && Notification.permission === 'granted'){
+            try { new Notification('MediCare+ — medication due', { body:`${r.name}${r.dosage?' ('+r.dosage+')':''} · ${fmtTime(r.scheduledAt)}`, tag:id }); } catch(e){}
+          }
+          db.collection(COL.reminders).doc(id).update({ status:'sent' }).catch(()=>{});
+        }
+      } else if (t < now - 15*60e3){
+        // past-due and unhandled → recorded as missed
+        db.collection(COL.reminders).doc(id).update({ status:'missed', actionedAt: sv() }).catch(()=>{});
+      }
+    }
+  });
+}
+async function enableAlerts(){
+  if (!('Notification' in window)) return toast('This browser does not support notifications.', 'error');
+  const p = await Notification.requestPermission();
+  if (p === 'granted'){ toast('Browser alerts enabled — doses will pop up when due.', 'success'); renderCurrent(); refreshAlertBtn(); }
+  else toast('No problem — in-app reminders still work.', 'info');
+}
+function refreshAlertBtn(){
+  const b = $('#btn-alerts');
+  const show = S.role === ROLES.PATIENT && 'Notification' in window && Notification.permission === 'default';
+  b.hidden = !show;
+  if (show) b.innerHTML = `${icon('bell')} Enable alerts`;
+}
+
+/* ============================================================
+   CHROME — sidebar nav, topbar, badges
+============================================================ */
+function renderChrome(){
+  const role = S.role;
+  const items = NAV[role] || [];
+  $('#side-nav').innerHTML = items.map(([sub, ic]) => {
+    const { sub: cur } = parseHash();
+    return `<button class="nav-item ${cur===sub?'active':''}" data-action="nav" data-sub="${sub}">
+      ${icon(ic)}<span>${esc(TITLES[role][sub])}</span><span class="nav-badge" data-badge="${sub==='notifications'?'1':''}" ${sub==='notifications'?'hidden':''} style="display:none"></span></button>`;
+  }).join('');
+  renderNavBadge();
+  $('#btn-logout').innerHTML = `${icon('logout')}<span>Sign out</span>`;
+  $('#user-chip').innerHTML = `
+    <div class="avatar">${esc(initials(S.profile?.name))}</div>
+    <div class="u-meta"><div class="u-name">${esc(S.profile?.name||'')}</div><div class="u-role">${esc(role)}</div></div>`;
+  refreshAlertBtn();
+}
+function renderNavBadge(){
+  const n = S.notifications.filter(x=>!x.read).length;
+  const badge = $('#side-nav .nav-badge');
+  if (!badge) return;
+  badge.hidden = n === 0;
+  badge.style.display = n ? 'flex' : 'none';
+  badge.textContent = n > 9 ? '9+' : n;
+}
+function closeSidebar(){ document.body.classList.remove('side-open'); $('#side-overlay').hidden = true; }
+function toggleSidebar(){
+  const open = document.body.classList.toggle('side-open');
+  $('#side-overlay').hidden = !open;
+}
+
+/* ============================================================
+   11. BOOT — static decoration + event wiring
+============================================================ */
+function decorate(){
+  const cross = icon('cross');
+  $('#brand-mark-1').innerHTML = cross; $('#brand-mark-2').innerHTML = cross;
+  $('#btn-hamburger').innerHTML = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>`; // SVG hamburger — no ☰ character
+  $('#auth-ecg').innerHTML = `<svg viewBox="0 0 640 120" preserveAspectRatio="xMidYMid meet"><path class="ecg-line" d="M0 60h150l14-2 14-34 16 62 14-84 16 56 10 8h70l12-4 12-24 14 42 12-52 12 34 8 10h266"/></svg>`;
+  $('#chip-doctors').innerHTML = `${icon('shield')} Certified doctors`;
+  $('#chip-support').innerHTML = `${icon('clock')} 24/7 support`;
+  $('#role-card-patient').innerHTML = `${icon('user')}<b>Patient</b><span>Manage my care & reminders</span>`;
+  $('#role-card-doctor').innerHTML = `${icon('stethoscope')}<b>Doctor</b><span>Consult & prescribe</span>`;
+  $('#btn-alerts').innerHTML = `${icon('bell')} Enable alerts`;
+  if (initError){
+    const n = $('#auth-setup-note');
+    n.hidden = false;
+    n.innerHTML = `${icon('info')}<span>${esc(initError)}</span>`;
+  }
+}
+
+document.addEventListener('click', async e => {
+  /* modal buttons first */
+  if (e.target.closest('#modal-ok')) return closeModal(true);
+  if (e.target.closest('#modal-cancel') || e.target.id === 'modal-root') return closeModal(false);
+
+  const btn = e.target.closest('[data-action]');
+  $('#side-overlay').hidden = !document.body.classList.contains('side-open');
+  if (!btn) return;
+  const { action, id, status, sub, f, t, d, spec, role } = btn.dataset;
+
+  switch (action){
+    /* auth + chrome */
+    case 'goto-register': location.hash = '#/register'; showAuthPanel('register'); break;
+    case 'goto-login': location.hash = '#/login'; showAuthPanel('login'); break;
+    case 'show-reset': showAuthPanel('reset'); break;
+    case 'set-role':
+      $('#reg-role').value = role;
+      $('#role-card-patient').classList.toggle('sel', role==='patient');
+      $('#role-card-doctor').classList.toggle('sel', role==='doctor');
+      $('#reg-spec-wrap').hidden = role !== 'doctor';
+      break;
+    case 'nav': navigateSub(S.role, sub); break;
+    case 'go-home': navigate(`#/${S.role}`); navigateSub(S.role, DEFAULT_SUB[S.role]); break;
+    case 'logout': doLogout(); break;
+    case 'toggle-sidebar': toggleSidebar(); break;
+    /* patient */
+    case 'nav-find': navigateSub('patient','find-doctor'); break;
+    case 'nav-appointments': navigateSub('patient','appointments'); break;
+    case 'nav-meds': navigateSub('patient','medications'); break;
+    case 'nav-notifs': navigateSub('patient','notifications'); break;
+    case 'set-spec': S.ui.spec = spec; renderCurrent(); break;
+    case 'appt-filter': S.ui.apptFilter = f; renderCurrent(); break;
+    case 'select-doctor': {
+      const doc = S.patient.doctors.find(x=>x.id===id);
+      if (!doc) break;
+      if (doc.verificationStatus !== 'verified') { toast('This doctor is awaiting verification and cannot be booked yet.','info'); break; }
+      S.selectedDoctor = doc; S.ui.bookDate = todayISO(); S.ui.slot = null;
+      navigateSub('patient','book'); break;
+    }
+    case 'pick-slot': S.ui.slot = t; $$('#slot-grid .slot').forEach(s=>s.classList.toggle('sel', s.dataset.time===t)); clearErr('#book-err'); break;
+    case 'book-confirm': bookAppointment(); break;
+    case 'cancel-appt': cancelAppointment(id); break;
+    case 'mark-dose': markDose(id, status); break;
+    case 'read-all': markAllRead(); break;
+    case 'read-one': if (!btn.closest('.notif-row').classList.contains('unread')) break;
+    case 'enable-alerts': enableAlerts(); break;
+    /* doctor */
+    case 'nav-schedule': navigateSub('doctor','schedule'); break;
+    case 'nav-requests': navigateSub('doctor','requests'); break;
+    case 'nav-consult': navigateSub('doctor','consultation'); break;
+    case 'sched-tab': S.ui.schedTab = t; renderCurrent(); break;
+    case 'accept-req': decideRequest(id, true); break;
+    case 'reject-req': decideRequest(id, false); break;
+    case 'open-consult': openConsult(id); break;
+    case 'close-consult': closeConsult('closed'); break;
+    case 'appt-complete': setApptStatus(id,'completed','completed'); break;
+    case 'appt-noshow': setApptStatus(id,'no-show','no-show'); break;
+    case 'appt-resched': rescheduleAppt(id); break;
+    case 'goto-builder': S.rxContext = S.activeConsult ? { patientId:S.activeConsult.patientId, patientName:S.activeConsult.patientName, appointmentId:S.activeConsult.appointmentId } : null; navigateSub('doctor','builder'); break;
+    case 'add-rx-med': addRxRow(); schedulePreview(); break;
+    case 'remove-rx-med': btn.closest('.rx-row').remove(); schedulePreview(); break;
+    case 'toggle-slot': {
+      const date = $('#avail-date')?.value; if (!date) break;
+      const cur = new Set(S.ui.availDraft[date] || []);
+      cur.has(t) ? cur.delete(t) : cur.add(t);
+      S.ui.availDraft[date] = AVAIL_SLOTS.filter(s=>cur.has(s)).sort();
+      if (!S.ui.availDraft[date].length) delete S.ui.availDraft[date];
+      renderAvailSlots(); renderCurrent(); break;
+    }
+    case 'remove-avail-date': delete S.ui.availDraft[d]; renderCurrent(); break;
+    case 'save-availability': saveAvailability(); break;
+    /* admin */
+    case 'nav-verify': navigateSub('admin','verification'); break;
+    case 'nav-logs': navigateSub('admin','logs'); break;
+    case 'toggle-user': {
+      const disable = status === 'active';
+      const ok = await confirmDialog(disable?'Disable this account?':'Re-enable this account?','Account status changes take effect on their next sign-in.',{okText: disable?'Disable':'Enable', danger:disable});
+      if (!ok) break;
+      try { await db.collection(COL.users).doc(id).update({ status: disable?'disabled':'active' }); toast('Account updated.','success'); }
+      catch(err){ toast(friendly(err),'error'); } break;
+    }
+    case 'verify-doctor': case 'unverify-doctor': {
+      const v = action === 'verify-doctor';
+      try {
+        await db.collection(COL.doctors).doc(id).update({ verificationStatus: v?'verified':'unverified' });
+        const doc = S.admin.doctors.find(x=>x.id===id);
+        await db.collection(COL.notifs).add({ recipientId:id, type:'verification',
+          title: v?'You are verified':'Verification revoked',
+          body: v?'An administrator verified your profile — patients can now book appointments with you.':'Your verification was revoked. Contact your administrator for details.',
+          read:false, createdAt:sv() });
+        toast(v?'Doctor verified.':'Verification revoked.','success');
+      } catch(err){ toast(friendly(err),'error'); } break;
+    }
+  }
+});
+
+/* forms */
+document.addEventListener('submit', e => {
+  const f = e.target.closest('[data-form]');
+  if (!f) return;
+  const kind = f.dataset.form;
+  if (kind === 'login'){ e.preventDefault();
+    const em = $('#login-email').value.trim(), pw = $('#login-pass').value;
+    clearErr('#login-err');
+    if (!em || !pw) return authErr('#login-err','Please fill in both fields.');
+    if (!/^\S+@\S+\.\S+$/.test(em)) return authErr('#login-err','Please enter a valid email address.');
+    doLogin(em, pw);
+  }
+  if (kind === 'register'){ e.preventDefault();
+    const role = $('#reg-role').value, name = $('#reg-name').value.trim(),
+          em = $('#reg-email').value.trim(), p1 = $('#reg-pass').value, p2 = $('#reg-pass2').value,
+          spec = $('#reg-spec').value.trim();
+    clearErr('#reg-err');
+    if (!name) return authErr('#reg-err','Please enter your full name.');
+    if (role==='doctor' && !spec) return authErr('#reg-err','Please enter your medical specialty.');
+    if (!/^\S+@\S+\.\S+$/.test(em)) return authErr('#reg-err','Please enter a valid email address.');
+    if (p1.length < 6) return authErr('#reg-err','Password must be at least 6 characters.');
+    if (p1 !== p2) return authErr('#reg-err','Passwords do not match.');
+    doRegister({ role, name, email:em, pass:p1, specialty:spec });
+  }
+  if (kind === 'reset'){ e.preventDefault();
+    const em = $('#reset-email').value.trim();
+    clearErr('#reset-err');
+    if (!/^\S+@\S+\.\S+$/.test(em)) return authErr('#reset-err','Please enter a valid email address.');
+    doReset(em);
+  }
+  if (kind === 'book'){ e.preventDefault(); bookAppointment(); }
+  if (kind === 'pf-patient'){ e.preventDefault(); savePatientProfile(e); }
+  if (kind === 'pf-doctor'){ e.preventDefault(); saveDoctorProfile(e); }
+  if (kind === 'prescription'){ e.preventDefault(); submitPrescription(e); }
+});
+
+/* live inputs inside the prescription builder → debounced preview */
+document.addEventListener('input', e => {
+  if (e.target.closest('#rx-form')){
+    if (e.target.classList.contains('rx-freq')){
+      const row = e.target.closest('.rx-row');
+      const n = Math.min(12, Math.max(1, parseInt(e.target.value,10) || 1));
+      const wrap = $('.rx-times', row);
+      const old = $$('.rx-time', row).map(i=>i.value);
+      while (old.length < n) old.push('');
+      wrap.innerHTML = old.slice(0,n).map(v=>`<input class="inp rx-time" type="time" value="${esc(v)}">`).join('');
+    }
+    schedulePreview();
+  }
+  if (e.target.id === 'rx-start') schedulePreview();
+});
+document.addEventListener('focusout', e => {
+  if (e.target.closest?.('#body-patient, #body-doctor, #body-admin')) setTimeout(()=>renderCurrent(), 120);
+});
+
+window.addEventListener('hashchange', route);
+ $('#btn-hamburger').addEventListener('click', toggleSidebar);
+ $('#side-overlay').addEventListener('click', closeSidebar);
+ $('#btn-logout').addEventListener('click', doLogout);
+ $('#btn-alerts').addEventListener('click', enableAlerts);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal-root').hidden) closeModal(false); });
+
+if (!firebaseReady){
+  // Still render the auth screen with the setup banner so the file opens gracefully.
+  decorate();
+  route();
+} else {
+  decorate();
+  route();
+}
+</script>
+</body>
+</html>
