@@ -120,6 +120,7 @@ ul{list-style:none}
 .spinner{display:none;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
 .btn.loading .spinner{display:inline-block}
 .btn.loading .btn-label{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* ============ Section heads ============ */
 .sec-head{max-width:660px;margin-bottom:56px}
@@ -223,7 +224,6 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
 .stack i:nth-child(3){background:var(--heading)}
 
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
 /* ============ Services ============ */
@@ -271,58 +271,7 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
 .flow-body h3{font-size:19px;font-weight:600;margin-bottom:8px}
 .flow-body p{font-size:15px;line-height:1.7;color:rgba(30,42,58,.72);max-width:480px}
 
-/* ============ Reminder engine demo ============ */
-.engine-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:28px;align-items:start}
-.panel{background:#fff;border:1px solid rgba(11,31,58,.07);border-radius:22px;box-shadow:0 22px 52px -26px rgba(11,31,58,.16)}
-.panel-head{display:flex;align-items:center;gap:14px;padding:20px 24px;border-bottom:1px solid rgba(11,31,58,.07)}
-.ph-icon{width:42px;height:42px;border-radius:12px;background:var(--mint);color:var(--teal-dark);display:grid;place-items:center;flex:none}
-.ph-title strong{display:block;font-size:16px;font-weight:600;color:var(--heading)}
-.ph-title span{font-size:12.5px;color:rgba(30,42,58,.55)}
-.ghost-pill{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:rgba(30,42,58,.55);background:var(--ice);padding:6px 12px;border-radius:50px;white-space:nowrap}
-.live-pill{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--teal-dark);background:rgba(184,240,228,.45);padding:6px 12px;border-radius:50px;white-space:nowrap}
-.live-pill i{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 1.8s ease infinite}
-.panel-body{padding:24px}
-.field label{display:block;font-size:13px;font-weight:600;color:var(--heading);margin-bottom:8px}
-.tinput{width:100%;padding:12px 14px;border:1.5px solid rgba(11,31,58,.15);border-radius:12px;font:inherit;font-size:14.5px;color:var(--heading);background:#fff;transition:border-color .25s,box-shadow .25s}
-.tinput:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(14,158,142,.14)}
-.tinput:disabled{background:var(--ice);color:rgba(30,42,58,.5)}
-.sel-wrap{position:relative}
-.sel-wrap select{appearance:none;-webkit-appearance:none;padding-right:40px;cursor:pointer}
-.sel-wrap > .ic{position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:rgba(30,42,58,.5);width:18px;height:18px}
-.err{display:none;font-size:12.5px;color:#D64545;margin-top:6px}
-.field.invalid .err{display:block}
-.field.invalid .tinput,.field.invalid select{border-color:#D64545}
-.eng-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
-.seg{display:flex;gap:4px;background:var(--ice);padding:4px;border-radius:12px}
-.seg-btn{flex:1;padding:9px 4px;border:none;background:transparent;border-radius:9px;font-size:13.5px;font-weight:600;color:rgba(30,42,58,.55);transition:all .25s;white-space:nowrap}
-.seg-btn:hover{color:var(--heading)}
-.seg-btn.active{background:#fff;color:var(--teal-dark);box-shadow:0 3px 10px -3px rgba(11,31,58,.2)}
-.eng-note{display:flex;gap:10px;margin-top:22px;background:var(--ice);border-radius:12px;padding:13px 15px;font-size:13px;line-height:1.6;color:rgba(30,42,58,.7)}
-.eng-note .ic{flex:none;margin-top:2px;color:var(--teal)}
-.sched-chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
-.chip{font-size:13px;color:rgba(30,42,58,.7);background:var(--ice);padding:8px 14px;border-radius:50px}
-.chip strong{color:var(--heading);font-weight:600}
-.day-strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px;scrollbar-width:thin}
-.day-strip::-webkit-scrollbar{height:6px}
-.day-strip::-webkit-scrollbar-thumb{background:var(--mint);border-radius:6px}
-.day{flex:none;width:46px;text-align:center;padding:10px 4px 9px;border:1.5px solid rgba(11,31,58,.08);border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:1px}
-.day-w{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(30,42,58,.42)}
-.day-n{font-size:15px;font-weight:600;color:var(--heading)}
-.day-dots{display:flex;gap:3px;margin-top:5px}
-.day-dots i{width:5px;height:5px;border-radius:50%;background:var(--teal)}
-.day.today{border-color:var(--teal);background:rgba(184,240,228,.25)}
-.day.today .day-w{color:var(--teal-dark)}
-.dose-line{display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid rgba(11,31,58,.08);border-radius:14px;animation:fadeUp .45s ease both;animation-delay:calc(var(--i)*70ms)}
-.dose-line + .dose-line{margin-top:10px}
-.dl-time{width:56px;flex:none;font-size:14px;font-weight:600;color:var(--heading)}
-.dl-name{flex:1;min-width:0;font-size:14px;color:rgba(30,42,58,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dl-status{display:inline-flex;align-items:center;gap:6px;flex:none;font-size:12.5px;font-weight:600;color:var(--teal-dark);background:rgba(184,240,228,.45);padding:5px 11px;border-radius:50px}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}}
-.sched-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:22px;flex-wrap:wrap}
-.safety-mini{display:flex;gap:9px;max-width:390px;font-size:12.5px;line-height:1.55;color:rgba(30,42,58,.6)}
-.safety-mini .ic{flex:none;margin-top:2px;color:var(--blue)}
-
-/* ============ Stats ============ */
+/* ============ Statistics ============ */
 .stats-section{border-bottom:1px solid rgba(11,31,58,.06)}
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);margin-top:48px}
 .stat{text-align:center;padding:8px 20px}
@@ -366,6 +315,18 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
 .sys-status{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--teal-dark);background:rgba(184,240,228,.45);padding:6px 13px;border-radius:50px}
 .sys-status i{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 2s ease infinite}
 .sys-ver{font-size:12px;color:rgba(30,42,58,.4);font-weight:500}
+
+/* ============ Form controls (shared with booking modal) ============ */
+.field label{display:block;font-size:13px;font-weight:600;color:var(--heading);margin-bottom:8px}
+.tinput{width:100%;padding:12px 14px;border:1.5px solid rgba(11,31,58,.15);border-radius:12px;font:inherit;font-size:14.5px;color:var(--heading);background:#fff;transition:border-color .25s,box-shadow .25s}
+.tinput:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(14,158,142,.14)}
+.tinput:disabled{background:var(--ice);color:rgba(30,42,58,.5)}
+.sel-wrap{position:relative}
+.sel-wrap select{appearance:none;-webkit-appearance:none;padding-right:40px;cursor:pointer}
+.sel-wrap > .ic{position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:rgba(30,42,58,.5);width:18px;height:18px}
+.err{display:none;font-size:12.5px;color:#D64545;margin-top:6px}
+.field.invalid .err{display:block}
+.field.invalid .tinput,.field.invalid select{border-color:#D64545}
 
 /* ============ Modal ============ */
 .overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(11,31,58,.5);backdrop-filter:blur(5px);opacity:0;pointer-events:none;transition:opacity .3s ease}
@@ -442,7 +403,6 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
   .services-grid{grid-template-columns:repeat(2,1fr)}
   .flow-grid{grid-template-columns:1fr}
   .flow-intro{position:static}
-  .engine-grid{grid-template-columns:1fr}
   .stats-row{grid-template-columns:repeat(2,1fr);row-gap:44px}
   .stat + .stat{border-left:none}
   .stat:nth-child(even){border-left:1px solid rgba(11,31,58,.1)}
@@ -454,7 +414,6 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
   h2{font-size:30px}
   .cta-panel{padding:58px 24px}
   .cta-panel h2{font-size:28px}
-  .eng-row{grid-template-columns:1fr}
 }
 @media (max-width:560px){
   .hero h1{font-size:34px}
@@ -512,7 +471,6 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
   <symbol id="i-heart-pulse" viewBox="0 0 24 24"><path d="M12 20.4 4.9 13.4C3.7 12.2 2.8 10.7 2.8 9A4.9 4.9 0 0 1 7.7 4.1c1.5 0 2.7.5 4.3 2.1 1.6-1.6 2.8-2.1 4.3-2.1a4.9 4.9 0 0 1 4.9 4.9c0 1.7-.9 3.2-2.1 4.4Z"/><path d="M5.5 11.5h2.6l1.1-2 2 4.2 1.6-3.2.9 1h3.8"/></symbol>
   <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14.5" rx="2.5"/><path d="m3.5 7.5 7.5 5.2a1.8 1.8 0 0 0 2 0l7.5-5.2"/></symbol>
   <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.1 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></symbol>
-  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V13M12 16.5h.01"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/></symbol>
   <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9.5 6 6 6-6"/></symbol>
 </svg>
@@ -766,86 +724,6 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
     </div>
   </section>
 
-  <!-- ============ Reminder engine demo ============ -->
-  <section class="section section-ice" id="engine">
-    <div class="container">
-      <div class="sec-head center" data-reveal>
-        <span class="overline">Reminder engine</span>
-        <h2>Prescription in. Schedule out.</h2>
-        <p class="lede">A live simulation of MediCare+'s automated prescription processor. Set the details exactly as a doctor would enter them — the medication schedule builds itself, and regenerates safely whenever anything changes.</p>
-      </div>
-      <div class="engine-grid">
-        <div class="panel" data-reveal>
-          <div class="panel-head">
-            <span class="ph-icon"><svg class="ic"><use href="#i-file-text"></use></svg></span>
-            <div class="ph-title"><strong>New prescription</strong><span>Entered by the prescribing doctor</span></div>
-            <span class="ghost-pill"><svg class="ic ic-13"><use href="#i-shield-check"></use></svg>Authorized</span>
-          </div>
-          <div class="panel-body">
-            <div class="field" id="medField">
-              <label for="medName">Medicine name</label>
-              <input class="tinput" type="text" id="medName" value="Medication A" autocomplete="off">
-              <small class="err">Medicine name is required for a safe schedule.</small>
-            </div>
-            <div class="eng-row">
-              <div class="field">
-                <label for="dosage">Dosage</label>
-                <div class="sel-wrap">
-                  <select class="tinput" id="dosage">
-                    <option value="1 tablet" selected>1 tablet</option>
-                    <option value="2 tablets">2 tablets</option>
-                  </select>
-                  <svg class="ic"><use href="#i-chevron-down"></use></svg>
-                </div>
-              </div>
-              <div class="field">
-                <label id="freqLabel">Frequency</label>
-                <div class="seg" role="group" aria-labelledby="freqLabel">
-                  <button type="button" class="seg-btn" data-freq="1">1× daily</button>
-                  <button type="button" class="seg-btn active" data-freq="2">2× daily</button>
-                  <button type="button" class="seg-btn" data-freq="3">3× daily</button>
-                </div>
-              </div>
-            </div>
-            <div class="field" style="margin-top:16px">
-              <label id="durLabel">Duration</label>
-              <div class="seg" role="group" aria-labelledby="durLabel">
-                <button type="button" class="seg-btn" data-days="5">5 days</button>
-                <button type="button" class="seg-btn active" data-days="7">7 days</button>
-                <button type="button" class="seg-btn" data-days="14">14 days</button>
-              </div>
-            </div>
-            <div class="eng-note">
-              <svg class="ic ic-16"><use href="#i-refresh"></use></svg>
-              <span>Changing any field regenerates the schedule instantly — outdated reminder jobs are replaced, never duplicated.</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel" data-reveal data-delay="120">
-          <div class="panel-head">
-            <span class="ph-icon"><svg class="ic"><use href="#i-bell"></use></svg></span>
-            <div class="ph-title"><strong>Generated medication schedule</strong><span>Rebuilt live as the prescription changes</span></div>
-            <span class="live-pill"><i></i>Active</span>
-          </div>
-          <div class="panel-body">
-            <div class="sched-chips">
-              <span class="chip"><strong id="chipTotal">14</strong> doses total</span>
-              <span class="chip">Daily at <strong id="chipTimes">08:00 · 20:00</strong></span>
-              <span class="chip">Ends <strong id="chipEnd">—</strong></span>
-            </div>
-            <div class="day-strip" id="dayStrip" aria-hidden="true"></div>
-            <div id="todayList" aria-live="polite"></div>
-            <div class="sched-foot">
-              <p class="safety-mini"><svg class="ic ic-14"><use href="#i-alert"></use></svg>If a prescription lacks the information needed for a safe schedule, MediCare+ requires clarification from the prescribing doctor — it never guesses.</p>
-              <button class="btn btn-outline btn-sm" id="previewBtn" type="button">Preview a reminder</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- ============ Statistics ============ -->
   <section class="section stats-section">
     <div class="container">
@@ -904,7 +782,6 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
           <li><a href="#home">Home</a></li>
           <li><a href="#services">Services</a></li>
           <li><a href="#about">How it works</a></li>
-          <li><a href="#engine">Reminder engine</a></li>
           <li><a href="#" data-open-modal>Book an appointment</a></li>
         </ul>
       </div>
@@ -1176,74 +1053,7 @@ function heroUpdate(){
 });
 heroUpdate();
 
-/* ---------- Reminder engine demo ---------- */
-const TIMES = { 1:['09:00'], 2:['08:00','20:00'], 3:['08:00','14:00','20:00'] };
-const engine = { dosage:'1 tablet', freq:2, days:7 };
-const medName = $('#medName'), medField = $('#medField');
-
-function escapeHtml(s){
-  return s.replace(/[&<>"']/g, function(c){
-    return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
-  });
-}
-function fmtD(d){ return d.toLocaleDateString('en-US', { month:'short', day:'numeric' }); }
-
-function renderSchedule(){
-  const name = medName.value.trim();
-  medField.classList.toggle('invalid', !name);
-  const safeName = name || 'Medication A';
-  const times = TIMES[engine.freq];
-  const end = new Date(); end.setDate(end.getDate() + engine.days - 1);
-
-  $('#chipTotal').textContent = engine.freq * engine.days;
-  $('#chipTimes').textContent = times.join(' · ');
-  $('#chipEnd').textContent = fmtD(end);
-
-  const strip = $('#dayStrip'); strip.innerHTML = '';
-  for (let d = 0; d < engine.days; d++){
-    const dt = new Date(); dt.setDate(dt.getDate() + d);
-    const col = document.createElement('div');
-    col.className = 'day' + (d === 0 ? ' today' : '');
-    col.innerHTML = '<span class="day-w">' + dt.toLocaleDateString('en-US',{weekday:'short'}) + '</span>' +
-                    '<span class="day-n">' + dt.getDate() + '</span>' +
-                    '<span class="day-dots">' + '<i></i>'.repeat(engine.freq) + '</span>';
-    strip.appendChild(col);
-  }
-
-  const list = $('#todayList'); list.innerHTML = '';
-  times.forEach(function(t, i){
-    const row = document.createElement('div');
-    row.className = 'dose-line';
-    row.style.setProperty('--i', i);
-    row.innerHTML = '<span class="dl-time">' + t + '</span>' +
-      '<span class="dl-name">' + escapeHtml(safeName) + ' · ' + engine.dosage + '</span>' +
-      '<span class="dl-status"><svg class="ic ic-13"><use href="#i-bell"></use></svg>Scheduled</span>';
-    list.appendChild(row);
-  });
-}
-medName.addEventListener('input', renderSchedule);
- $('#dosage').addEventListener('change', function(e){ engine.dosage = e.target.value; renderSchedule(); });
- $$('.seg-btn').forEach(function(b){
-  b.addEventListener('click', function(){
-    $$('.seg-btn', b.closest('.seg')).forEach(function(x){ x.classList.remove('active'); });
-    b.classList.add('active');
-    if (b.dataset.freq) engine.freq = +b.dataset.freq;
-    if (b.dataset.days) engine.days = +b.dataset.days;
-    renderSchedule();
-  });
-});
- $('#previewBtn').addEventListener('click', function(){
-  const times = TIMES[engine.freq];
-  const now = new Date(), cur = now.getHours() * 60 + now.getMinutes();
-  const next = times.find(function(t){
-    const p = t.split(':'); return (+p[0]) * 60 + (+p[1]) >= cur;
-  }) || times[0];
-  toast('reminder', 'Medication reminder preview',
-    (medName.value.trim() || 'Medication A') + ' · ' + engine.dosage + ' — scheduled for ' + next + '.');
-});
-renderSchedule();
-
-/* ---------- Toast system (timestamped, backend-log friendly) ---------- */
+/* ---------- Toast system (timestamped) ---------- */
 const toasts = $('#toasts');
 const T_ICONS = { success:'#i-check-circle', reminder:'#i-bell', info:'#i-info', error:'#i-alert' };
 function nowTime(){
