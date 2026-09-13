@@ -5,10 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#FFFFFF">
 <meta name="description" content="MediCare+ — digital healthcare management: appointments, medical history, digital prescriptions and automated medication reminders.">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph / social preview (logo reused automatically) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="MediCare+ — Your Health, Our Priority — Always">
+<meta property="og:description" content="Appointments, medical history, digital prescriptions and automated medication reminders — in one secure platform.">
+<meta property="og:image" content="assets/logo.png">
+<meta property="og:image:alt" content="MediCare+ logo">
+<meta name="twitter:card" content="summary">
+
 <title>MediCare+ — Your Health, Our Priority — Always</title>
+
+<!-- =====================================================================
+     LOGO / BRAND ASSET
+     Drop your logo file at:  assets/logo.png
+     It is used for: navbar, footer, favicon, apple-touch-icon, social card.
+     Prefer SVG? Just change the path below, e.g. assets/logo.svg
+     If the file is missing, a built-in fallback mark is shown automatically.
+====================================================================== -->
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="apple-touch-icon" href="assets/logo.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<script>
+/* =====================================================================
+   MEDIACARE+ RUNTIME CONFIG
+   - API_BASE_URL: point this at your backend when it goes live.
+   - APP_VERSION : shown in the footer; bump on each release.
+===================================================================== */
+window.MEDICARE = {
+  API_BASE_URL: '/api/v1',          // e.g. 'https://api.medicareplus.health/v1'
+  APP_VERSION: '1.0.0'
+};
+
+/* Logo fallback: built-in replica of the MediCare+ mark.
+   Used automatically if assets/logo.png is not present. */
+window.LOGO_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">' +
+  '<rect width="40" height="40" rx="11" fill="#0E9E8E"/>' +
+  '<path d="M6.5 21.5h6.3l2.7-6.3 4.7 10.8 2.6-5h10.2" fill="none" stroke="#FFFFFF" ' +
+  'stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+);
+
+/* If the logo file is missing, fall back for the favicon too. */
+(function(){
+  var probe = new Image();
+  probe.onerror = function(){
+    var link = document.querySelector('link[rel="icon"]');
+    if (link) link.href = window.LOGO_FALLBACK;
+  };
+  probe.src = 'assets/logo.png';
+})();
+</script>
+
 <style>
 /* ============ Tokens ============ */
 :root{
@@ -45,8 +98,12 @@ ul{list-style:none}
 .ic-13{width:13px;height:13px}
 .ic-14{width:14px;height:14px}
 .ic-16{width:16px;height:16px}
-.ic-18{width:18px;height:18px}
 .sprite{position:absolute;width:0;height:0;overflow:hidden}
+
+/* ============ Logo (image-based — swap the file, not the code) ============ */
+.logo-img{width:36px;height:36px;flex:none;border-radius:11px;display:block;object-fit:contain}
+.logo{display:inline-flex;align-items:center;gap:10px;font-size:24px;font-weight:700;letter-spacing:-.3px;color:var(--heading)}
+.logo .plus{color:var(--teal)}
 
 /* ============ Buttons ============ */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 32px;border-radius:50px;font-weight:600;font-size:16px;line-height:1.2;border:2px solid transparent;transition:all .3s ease;white-space:nowrap}
@@ -82,8 +139,6 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
 .nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:box-shadow .3s,background .3s}
 .nav.scrolled{background:rgba(255,255,255,.92);box-shadow:0 8px 30px -14px rgba(11,31,58,.16)}
 .nav-inner{height:76px;display:flex;align-items:center;justify-content:space-between;gap:24px}
-.logo{display:inline-flex;align-items:center;gap:10px;font-size:24px;font-weight:700;letter-spacing:-.3px;color:var(--heading)}
-.logo .plus{color:var(--teal)}
 .nav-links{display:flex;gap:36px}
 .nav-links a{position:relative;font-size:16px;font-weight:500;color:var(--body);transition:color .25s}
 .nav-links a::after{content:'';position:absolute;left:0;bottom:-7px;width:100%;height:2px;background:var(--teal);border-radius:2px;transform:scaleX(0);transform-origin:left;transition:transform .3s ease}
@@ -296,6 +351,7 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
 .footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1.3fr;gap:48px}
 .footer-brand p{margin-top:18px;font-size:14px;line-height:1.7;color:rgba(30,42,58,.65);max-width:310px}
 .footer-brand small{display:block;margin-top:16px;font-size:12.5px;color:rgba(30,42,58,.45)}
+.footer .logo-img{width:34px;height:34px;border-radius:10px}
 .footer h4{font-size:15px;font-weight:600;color:var(--heading);margin-bottom:18px}
 .footer-col ul{display:flex;flex-direction:column;gap:12px}
 .footer-col a:not(.contact-li){font-size:14.5px;color:rgba(30,42,58,.68);transition:color .25s}
@@ -307,6 +363,9 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
 .footer-bottom nav{display:flex;gap:22px}
 .footer-bottom nav a{color:rgba(30,42,58,.55);transition:color .25s}
 .footer-bottom nav a:hover{color:var(--teal-dark)}
+.sys-status{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--teal-dark);background:rgba(184,240,228,.45);padding:6px 13px;border-radius:50px}
+.sys-status i{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 2s ease infinite}
+.sys-ver{font-size:12px;color:rgba(30,42,58,.4);font-weight:500}
 
 /* ============ Modal ============ */
 .overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(11,31,58,.5);backdrop-filter:blur(5px);opacity:0;pointer-events:none;transition:opacity .3s ease}
@@ -337,14 +396,19 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
 .succ-note{max-width:390px;margin:16px auto 28px;font-size:13.5px;line-height:1.65;color:rgba(30,42,58,.6)}
 .succ-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
 
+/* Honeypot — hidden from humans, catches bots before the backend sees them */
+.hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0;pointer-events:none}
+
 /* ============ Toasts ============ */
 .toasts{position:fixed;right:24px;bottom:24px;z-index:300;display:flex;flex-direction:column;gap:12px}
 .toast{display:flex;align-items:flex-start;gap:12px;min-width:300px;max-width:370px;background:#fff;border:1px solid rgba(11,31,58,.08);border-left:3px solid var(--teal);border-radius:14px;padding:14px 16px;box-shadow:0 18px 44px -14px rgba(11,31,58,.24);animation:toastIn .35s cubic-bezier(.21,1.02,.55,1) both}
 .toast.out{animation:toastOut .3s ease both}
 .t-icon{width:34px;height:34px;border-radius:10px;background:var(--mint);color:var(--teal-dark);display:grid;place-items:center;flex:none}
 .t-body{flex:1;min-width:0}
-.t-body strong{display:block;font-size:14px;color:var(--heading)}
-.t-body span{display:block;font-size:13px;line-height:1.5;color:rgba(30,42,58,.7);margin-top:2px}
+.t-head{display:flex;align-items:baseline;gap:8px}
+.t-head strong{font-size:14px;color:var(--heading)}
+.t-time{margin-left:auto;font-size:11px;font-weight:500;color:rgba(30,42,58,.4)}
+.t-body > span{display:block;font-size:13px;line-height:1.5;color:rgba(30,42,58,.7);margin-top:2px}
 .t-close{background:none;border:none;color:rgba(30,42,58,.4);padding:2px;transition:color .25s}
 .t-close:hover{color:var(--heading)}
 .toast.reminder{border-left-color:var(--blue)}
@@ -458,8 +522,10 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
 <!-- ============ Navigation ============ -->
 <header class="nav" id="nav">
   <div class="container nav-inner">
+    <!-- LOGO: swap "assets/logo.png" with your own file to rebrand everywhere -->
     <a class="logo" href="#home" aria-label="MediCare+ home">
-      <svg width="36" height="36" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#0E9E8E"/><path d="M8 21h6l3-7 5 12 3-6h7" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <img class="logo-img" src="assets/logo.png" alt="MediCare+ logo" width="36" height="36"
+           onerror="this.onerror=null;this.src=window.LOGO_FALLBACK">
       <span>MediCare<span class="plus">+</span></span>
     </a>
     <nav aria-label="Primary">
@@ -823,8 +889,10 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
   <div class="container">
     <div class="footer-grid">
       <div class="footer-col footer-brand">
+        <!-- LOGO: same file as the navbar — one swap rebrands both -->
         <a class="logo" href="#home">
-          <svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#0E9E8E"/><path d="M8 21h6l3-7 5 12 3-6h7" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <img class="logo-img" src="assets/logo.png" alt="MediCare+ logo" width="34" height="34"
+               onerror="this.onerror=null;this.src=window.LOGO_FALLBACK">
           <span style="font-size:22px">MediCare<span class="plus">+</span></span>
         </a>
         <p>A modern healthcare management platform connecting patients and doctors — from appointments and medical history to digital prescriptions and automatic medication reminders.</p>
@@ -860,8 +928,8 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
     </div>
     <hr class="footer-divider">
     <div class="footer-bottom">
-      <span>© <span id="year">2025</span> MediCare+. All rights reserved.</span>
-      <span>Your Health. Your History. Your Care — Simplified.</span>
+      <span class="sys-status"><i></i>All systems operational</span>
+      <span>© <span id="year">2025</span> MediCare+ <span class="sys-ver" id="appVer"></span></span>
       <nav aria-label="Legal">
         <a href="#" data-info="Privacy policy">Privacy Policy</a>
         <a href="#" data-info="Terms of service">Terms of Service</a>
@@ -872,6 +940,10 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
 </footer>
 
 <!-- ============ Appointment modal ============ -->
+<!-- BACKEND INTEGRATION: with JavaScript enabled this form is intercepted and sent
+     via fetch() (see the submit handler). Without JavaScript it performs a native
+     POST to the action URL, so the endpoint receives standard form fields:
+     full_name, phone, email, specialty, doctor, date, time_slot, reason, consent. -->
 <div class="overlay" id="overlay" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
     <button class="modal-close" id="modalClose" type="button" aria-label="Close dialog"><svg class="ic ic-16"><use href="#i-close"></use></svg></button>
@@ -879,27 +951,27 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
     <div id="modalFormView">
       <h3 id="mTitle">Book an appointment</h3>
       <p class="modal-sub">Tell us what you need — a confirmed doctor and time will follow.</p>
-      <form id="apptForm" novalidate>
+      <form id="apptForm" action="/api/v1/appointments" method="post" novalidate>
         <div class="form-grid">
           <div class="field" id="fNameField">
             <label for="fName">Full name</label>
-            <input class="tinput" type="text" id="fName" placeholder="Jane Doe" autocomplete="name">
+            <input class="tinput" type="text" id="fName" name="full_name" placeholder="Jane Doe" autocomplete="name">
             <small class="err">Please enter your full name.</small>
           </div>
           <div class="field" id="fPhoneField">
             <label for="fPhone">Phone</label>
-            <input class="tinput" type="tel" id="fPhone" placeholder="+1 555 000 1234" inputmode="tel" autocomplete="tel">
+            <input class="tinput" type="tel" id="fPhone" name="phone" placeholder="+1 555 000 1234" inputmode="tel" autocomplete="tel">
             <small class="err">Please enter a valid phone number.</small>
           </div>
           <div class="field full" id="fEmailField">
             <label for="fEmail">Email</label>
-            <input class="tinput" type="email" id="fEmail" placeholder="jane@example.com" autocomplete="email">
+            <input class="tinput" type="email" id="fEmail" name="email" placeholder="jane@example.com" autocomplete="email">
             <small class="err">Please enter a valid email address.</small>
           </div>
           <div class="field" id="fSpecField">
             <label for="fSpec">Specialty</label>
             <div class="sel-wrap">
-              <select class="tinput" id="fSpec">
+              <select class="tinput" id="fSpec" name="specialty">
                 <option value="" disabled selected>Select specialty</option>
                 <option>General Medicine</option>
                 <option>Cardiology</option>
@@ -913,7 +985,7 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
           <div class="field" id="fDocField">
             <label for="fDoc">Doctor</label>
             <div class="sel-wrap">
-              <select class="tinput" id="fDoc" disabled>
+              <select class="tinput" id="fDoc" name="doctor" disabled>
                 <option value="" disabled selected>Select doctor</option>
               </select>
               <svg class="ic"><use href="#i-chevron-down"></use></svg>
@@ -922,7 +994,7 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
           </div>
           <div class="field full" id="fDateField">
             <label for="fDate">Preferred date</label>
-            <input class="tinput" type="date" id="fDate">
+            <input class="tinput" type="date" id="fDate" name="date">
             <small class="err">Please pick a date.</small>
           </div>
           <div class="field full" id="fSlot">
@@ -937,19 +1009,22 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
               <button type="button" class="slot" data-slot="16:00">16:00</button>
               <button type="button" class="slot" data-slot="17:00">17:00</button>
             </div>
+            <input type="hidden" name="time_slot" id="timeSlotField" value="">
             <small class="err">Please select a time slot.</small>
           </div>
           <div class="field full">
             <label for="fReason">Reason for visit <span style="font-weight:400;color:rgba(30,42,58,.5)">(optional)</span></label>
-            <textarea class="tinput" id="fReason" rows="2" placeholder="Briefly describe your concern"></textarea>
+            <textarea class="tinput" id="fReason" name="reason" rows="2" placeholder="Briefly describe your concern"></textarea>
           </div>
           <div class="field full" id="fConsentField">
             <label class="consent" for="fConsent">
-              <input type="checkbox" id="fConsent">
+              <input type="checkbox" id="fConsent" name="consent" value="accepted">
               <span>I consent to MediCare+ processing this request in line with the platform's privacy practices.</span>
             </label>
             <small class="err">Consent is required to submit a request.</small>
           </div>
+          <!-- Honeypot: humans never see or fill this. If it arrives filled, reject silently. -->
+          <input type="text" name="company" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
         </div>
         <button class="btn btn-primary btn-block" id="submitBtn" type="submit">
           <span class="btn-label">Request appointment<svg class="ic ic-16"><use href="#i-arrow-right"></use></svg></span>
@@ -977,6 +1052,12 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
+<noscript>
+  <div style="position:fixed;bottom:0;left:0;right:0;z-index:500;background:#0B1F3A;color:#fff;font-family:'Poppins',sans-serif;font-size:14px;padding:14px 24px;text-align:center">
+    MediCare+ works best with JavaScript enabled. Appointment requests can still be submitted using the booking form.
+  </div>
+</noscript>
+
 <script>
 (function(){
 'use strict';
@@ -984,8 +1065,9 @@ const $  = (s, c) => (c || document).querySelector(s);
 const $$ = (s, c) => Array.prototype.slice.call((c || document).querySelectorAll(s));
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ---------- Year ---------- */
+/* ---------- Version + year (from runtime config) ---------- */
  $('#year').textContent = new Date().getFullYear();
+ $('#appVer').textContent = 'v' + (window.MEDICARE ? window.MEDICARE.APP_VERSION : '1.0.0');
 
 /* ---------- Nav scroll state ---------- */
 const nav = $('#nav');
@@ -1082,7 +1164,7 @@ function heroUpdate(){
  $$('.dose').forEach(function(btn){
   btn.addEventListener('click', function(){
     if (btn.dataset.state === 'taken'){
-      btn.dataset.state = btn.dataset.base;          // revert to original state
+      btn.dataset.state = btn.dataset.base;
     } else {
       btn.dataset.state = 'taken';
       const name = $('.dose-info strong', btn).textContent;
@@ -1161,14 +1243,18 @@ medName.addEventListener('input', renderSchedule);
 });
 renderSchedule();
 
-/* ---------- Toast system ---------- */
+/* ---------- Toast system (timestamped, backend-log friendly) ---------- */
 const toasts = $('#toasts');
 const T_ICONS = { success:'#i-check-circle', reminder:'#i-bell', info:'#i-info', error:'#i-alert' };
+function nowTime(){
+  return new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+}
 function toast(type, title, msg){
   const el = document.createElement('div');
   el.className = 'toast ' + type;
   el.innerHTML = '<span class="t-icon"><svg class="ic"><use href="' + T_ICONS[type] + '"></use></svg></span>' +
-    '<div class="t-body"><strong>' + title + '</strong><span>' + msg + '</span></div>' +
+    '<div class="t-body"><span class="t-head"><strong>' + title + '</strong><em class="t-time">' + nowTime() + '</em></span>' +
+    '<span>' + msg + '</span></div>' +
     '<button class="t-close" type="button" aria-label="Dismiss notification"><svg class="ic ic-14"><use href="#i-close"></use></svg></button>';
   toasts.appendChild(el);
   const kill = function(){ el.classList.add('out'); setTimeout(function(){ el.remove(); }, 300); };
@@ -1207,7 +1293,8 @@ window.addEventListener('keydown', function(e){
   if (e.key === 'Escape'){ closeModal(); closeMenu(); }
 });
 
-/* Doctor data: specialty -> doctors */
+/* Doctor data — BACKEND INTEGRATION: replace with
+   fetch(MEDICARE.API_BASE_URL + '/doctors?specialty=' + encodeURIComponent(value)) */
 const DOCTORS = {
   'General Medicine': ['Dr. Amara Okafor','Dr. James Whitfield'],
   'Cardiology':       ['Dr. Sarah Mitchell','Dr. Omar Haddad'],
@@ -1223,11 +1310,12 @@ specSel.addEventListener('change', function(){
   docSel.disabled = false;
 });
 
-/* Time slots */
+/* Time slots — keep the hidden field in sync so native POSTs carry the value too */
  $$('.slot').forEach(function(s){
   s.addEventListener('click', function(){
     $$('.slot').forEach(function(x){ x.classList.remove('active'); });
     s.classList.add('active');
+    $('#timeSlotField').value = s.dataset.slot;
     $('#fSlot').classList.remove('invalid');
   });
 });
@@ -1239,6 +1327,11 @@ specSel.addEventListener('change', function(){
 function setInvalid(id, bad){ $('#' + id).classList.toggle('invalid', bad); return bad; }
  $('#apptForm').addEventListener('submit', function(e){
   e.preventDefault();
+  const form = e.target;
+
+  /* Honeypot: if a bot filled it, exit quietly — nothing is sent. */
+  if (form.elements.company.value){ return; }
+
   let firstBad = null;
   const check = function(id, cond){
     setInvalid(id, cond);
@@ -1264,19 +1357,42 @@ function setInvalid(id, bad){ $('#' + id).classList.toggle('invalid', bad); retu
 
   const btn = $('#submitBtn');
   btn.classList.add('loading'); btn.disabled = true;
+
+  /* ================================================================
+     BACKEND INTEGRATION POINT
+     Replace the simulated delay below with a real request, e.g.:
+
+     fetch(window.MEDICARE.API_BASE_URL + '/appointments', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify(Object.fromEntries(new FormData(form)))
+     })
+       .then(function(res){
+         if (!res.ok) throw new Error('Request failed: ' + res.status);
+         return res.json();              // expected: { reference: "MC-8F3K2" }
+       })
+       .then(function(data){ showSuccess(data.reference); })
+       .catch(function(err){ toast('error', 'Something went wrong', 'Please try again in a moment.'); })
+       .finally(function(){ btn.classList.remove('loading'); btn.disabled = false; });
+  ================================================================ */
   setTimeout(function(){
     btn.classList.remove('loading'); btn.disabled = false;
-    const dt = new Date($('#fDate').value + 'T00:00');
-    $('#sumLine').textContent = docSel.value + ' · ' +
-      dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' }) +
-      ' at ' + $('.slot.active').dataset.slot;
-    $('#refCode').textContent = 'MC-' + Math.random().toString(36).slice(2, 7).toUpperCase();
-    $('#modalFormView').hidden = true;
-    $('#modalSuccess').hidden = false;
+    const ref = 'MC-' + Math.random().toString(36).slice(2, 7).toUpperCase();
+    showSuccess(ref);
     toast('success', 'Appointment requested', 'The doctor has been notified — confirmation to follow.');
-    setTimeout(function(){ $('#doneBtn').focus(); }, 120);
   }, 900);
 });
+
+function showSuccess(reference){
+  const dt = new Date($('#fDate').value + 'T00:00');
+  $('#sumLine').textContent = docSel.value + ' · ' +
+    dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' }) +
+    ' at ' + $('.slot.active').dataset.slot;
+  $('#refCode').textContent = reference;
+  $('#modalFormView').hidden = true;
+  $('#modalSuccess').hidden = false;
+  setTimeout(function(){ $('#doneBtn').focus(); }, 120);
+}
 
  $('#doneBtn').addEventListener('click', closeModal);
  $('#againBtn').addEventListener('click', function(){
@@ -1284,6 +1400,7 @@ function setInvalid(id, bad){ $('#' + id).classList.toggle('invalid', bad); retu
   docSel.disabled = true;
   docSel.innerHTML = '<option value="" disabled selected>Select doctor</option>';
   $$('.slot').forEach(function(x){ x.classList.remove('active'); });
+  $('#timeSlotField').value = '';
   $$('.field.invalid').forEach(function(f){ f.classList.remove('invalid'); });
   $('#modalSuccess').hidden = true;
   $('#modalFormView').hidden = false;
