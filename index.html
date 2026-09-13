@@ -24,21 +24,22 @@
      Prefer SVG? Just change the path below, e.g. assets/logo.svg
      If the file is missing, a built-in fallback mark is shown automatically.
 ====================================================================== -->
-<link rel="icon" type="image/png" href="assets/logo.png">
-<link rel="apple-touch-icon" href="assets/logo.png">
+<link rel="icon" type="image/png" href="robofestlogo.png">
+<link rel="apple-touch-icon" href="robofestlogo.png">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <script>
 /* =====================================================================
    MEDIACARE+ RUNTIME CONFIG
-   - API_BASE_URL: point this at your backend when it goes live.
-   - APP_VERSION : shown in the footer; bump on each release.
+   - API_BASE_URL : point this at your backend when it goes live.
+   - APP_VERSION  : shown in the footer; bump on each release.
+   - APPOINTMENT_URL : where every "Book Appointment" link points.
+     The appointment flow will live on its own page/site — update
+     this once value and all links follow (nav, hero, CTA, footer).
 ===================================================================== */
 window.MEDICARE = {
-  API_BASE_URL: '/api/v1',          // e.g. 'https://api.medicareplus.health/v1'
+  API_BASE_URL: '/api/v1',
+  APPOINTMENT_URL: 'appointment.html',
   APP_VERSION: '1.0.0'
 };
 
@@ -58,7 +59,7 @@ window.LOGO_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
     var link = document.querySelector('link[rel="icon"]');
     if (link) link.href = window.LOGO_FALLBACK;
   };
-  probe.src = 'assets/logo.png';
+  probe.src = 'robofestlogo.png';
 })();
 </script>
 
@@ -114,13 +115,6 @@ ul{list-style:none}
 .btn-coral{background:var(--coral);color:#fff}
 .btn-coral:hover{background:#F2685C;transform:translateY(-2px);box-shadow:0 14px 28px -10px rgba(255,122,110,.5)}
 .btn-nav{padding:11px 26px;font-size:15px}
-.btn-sm{padding:10px 22px;font-size:14px}
-.btn-block{width:100%;margin-top:24px}
-.btn .btn-label{display:inline-flex;align-items:center;gap:10px}
-.spinner{display:none;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
-.btn.loading .spinner{display:inline-block}
-.btn.loading .btn-label{display:none}
-@keyframes spin{to{transform:rotate(360deg)}}
 
 /* ============ Section heads ============ */
 .sec-head{max-width:660px;margin-bottom:56px}
@@ -224,6 +218,7 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
 .stack i:nth-child(3){background:var(--heading)}
 
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
 /* ============ Services ============ */
@@ -316,50 +311,6 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
 .sys-status i{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 2s ease infinite}
 .sys-ver{font-size:12px;color:rgba(30,42,58,.4);font-weight:500}
 
-/* ============ Form controls (shared with booking modal) ============ */
-.field label{display:block;font-size:13px;font-weight:600;color:var(--heading);margin-bottom:8px}
-.tinput{width:100%;padding:12px 14px;border:1.5px solid rgba(11,31,58,.15);border-radius:12px;font:inherit;font-size:14.5px;color:var(--heading);background:#fff;transition:border-color .25s,box-shadow .25s}
-.tinput:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(14,158,142,.14)}
-.tinput:disabled{background:var(--ice);color:rgba(30,42,58,.5)}
-.sel-wrap{position:relative}
-.sel-wrap select{appearance:none;-webkit-appearance:none;padding-right:40px;cursor:pointer}
-.sel-wrap > .ic{position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:rgba(30,42,58,.5);width:18px;height:18px}
-.err{display:none;font-size:12.5px;color:#D64545;margin-top:6px}
-.field.invalid .err{display:block}
-.field.invalid .tinput,.field.invalid select{border-color:#D64545}
-
-/* ============ Modal ============ */
-.overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(11,31,58,.5);backdrop-filter:blur(5px);opacity:0;pointer-events:none;transition:opacity .3s ease}
-.overlay.open{opacity:1;pointer-events:auto}
-.modal{position:relative;width:min(600px,100%);max-height:calc(100vh - 40px);overflow-y:auto;background:#fff;border-radius:24px;padding:36px;transform:translateY(18px) scale(.98);transition:transform .35s cubic-bezier(.22,1,.36,1)}
-.overlay.open .modal{transform:none}
-.modal-close{position:absolute;top:18px;right:18px;z-index:2;width:38px;height:38px;border-radius:50%;border:none;background:var(--ice);color:var(--body);display:grid;place-items:center;transition:background .25s,color .25s}
-.modal-close:hover{background:var(--mint);color:var(--teal-dark)}
-.modal h3{font-size:24px;font-weight:700;letter-spacing:-.3px}
-.modal-sub{font-size:14.5px;color:rgba(30,42,58,.65);margin:8px 0 26px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.field.full{grid-column:1/-1}
-.field textarea{resize:vertical;min-height:64px}
-.consent{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;color:rgba(30,42,58,.7);cursor:pointer}
-.consent input{width:17px;height:17px;margin-top:2px;accent-color:var(--teal);flex:none}
-.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.slot{padding:11px 4px;border:1.5px solid rgba(11,31,58,.15);border-radius:11px;background:#fff;font-size:13.5px;font-weight:500;color:var(--body);text-align:center;transition:all .25s}
-.slot:hover{border-color:var(--teal);color:var(--teal-dark)}
-.slot.active{background:var(--teal);border-color:var(--teal);color:#fff}
-.modal-success{text-align:center;padding:14px 0 6px}
-.succ-check{width:84px;height:84px;display:block;margin:0 auto 22px}
-.succ-check circle{fill:rgba(184,240,228,.3);stroke:var(--teal);stroke-width:3;stroke-dasharray:100;stroke-dashoffset:100;animation:draw .7s ease forwards}
-.succ-check path{stroke:var(--teal);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;fill:none;stroke-dasharray:100;stroke-dashoffset:100;animation:draw .5s ease .55s forwards}
-@keyframes draw{to{stroke-dashoffset:0}}
-.sum-line{font-size:16px;font-weight:600;color:var(--teal-dark);background:rgba(184,240,228,.4);border:1px solid var(--mint);border-radius:14px;padding:14px 18px;margin:20px 0 10px}
-.ref{font-size:13px;color:rgba(30,42,58,.55)}
-.ref strong{color:var(--heading)}
-.succ-note{max-width:390px;margin:16px auto 28px;font-size:13.5px;line-height:1.65;color:rgba(30,42,58,.6)}
-.succ-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
-
-/* Honeypot — hidden from humans, catches bots before the backend sees them */
-.hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0;pointer-events:none}
-
 /* ============ Toasts ============ */
 .toasts{position:fixed;right:24px;bottom:24px;z-index:300;display:flex;flex-direction:column;gap:12px}
 .toast{display:flex;align-items:flex-start;gap:12px;min-width:300px;max-width:370px;background:#fff;border:1px solid rgba(11,31,58,.08);border-left:3px solid var(--teal);border-radius:14px;padding:14px 16px;box-shadow:0 18px 44px -14px rgba(11,31,58,.24);animation:toastIn .35s cubic-bezier(.21,1.02,.55,1) both}
@@ -372,12 +323,8 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
 .t-body > span{display:block;font-size:13px;line-height:1.5;color:rgba(30,42,58,.7);margin-top:2px}
 .t-close{background:none;border:none;color:rgba(30,42,58,.4);padding:2px;transition:color .25s}
 .t-close:hover{color:var(--heading)}
-.toast.reminder{border-left-color:var(--blue)}
-.toast.reminder .t-icon{background:#DCE7FB;color:#2456B8}
 .toast.info{border-left-color:#8A97AC}
 .toast.info .t-icon{background:#E8EDF5;color:#44536B}
-.toast.error{border-left-color:#D64545}
-.toast.error .t-icon{background:#FBE4E4;color:#D64545}
 @keyframes toastIn{from{opacity:0;transform:translateX(26px)}}
 @keyframes toastOut{to{opacity:0;transform:translateX(26px)}}
 
@@ -424,8 +371,6 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
   .fc-text strong{font-size:12.5px}
   .fc-text span{font-size:11px}
   .services-grid{grid-template-columns:1fr}
-  .slots{grid-template-columns:repeat(3,1fr)}
-  .form-grid{grid-template-columns:1fr}
   .stat-num{font-size:36px}
   .stat{padding:8px 6px}
   .trust-row{grid-template-columns:1fr}
@@ -472,7 +417,6 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
   <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14.5" rx="2.5"/><path d="m3.5 7.5 7.5 5.2a1.8 1.8 0 0 0 2 0l7.5-5.2"/></symbol>
   <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.1 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/></symbol>
-  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9.5 6 6 6-6"/></symbol>
 </svg>
 
 <a class="skip" href="#main">Skip to content</a>
@@ -494,7 +438,8 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
         <li><a href="#contact">Contact</a></li>
       </ul>
     </nav>
-    <button class="btn btn-primary btn-nav nav-cta" data-open-modal type="button">Book Appointment</button>
+    <!-- Appointment flow lives on its own page/site — see MEDICARE.APPOINTMENT_URL -->
+    <a class="btn btn-primary btn-nav nav-cta" href="appointment.html" data-appointment-link>Book Appointment</a>
     <button class="nav-toggle" id="menuBtn" type="button" aria-label="Toggle menu" aria-expanded="false">
       <svg class="ic i-menu"><use href="#i-menu"></use></svg>
       <svg class="ic i-close"><use href="#i-close"></use></svg>
@@ -507,7 +452,7 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
   <a href="#services">Services</a>
   <a href="#about">About</a>
   <a href="#contact">Contact</a>
-  <button class="btn btn-primary" data-open-modal type="button">Book Appointment</button>
+  <a class="btn btn-primary" href="appointment.html" data-appointment-link>Book Appointment</a>
 </div>
 
 <main id="main">
@@ -522,7 +467,7 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
         <h1>Your Health, Our <span class="hl">Priority</span> — Always</h1>
         <p class="hero-sub">MediCare+ keeps your medical history organized, connects you with verified doctors, and turns every digital prescription into an automatic medication schedule — so you stay on track without lifting a finger.</p>
         <div class="hero-actions">
-          <button class="btn btn-primary" data-open-modal type="button">Get Started</button>
+          <a class="btn btn-primary" href="appointment.html" data-appointment-link>Get Started</a>
           <a class="btn btn-outline" href="#services">Our Services</a>
         </div>
         <div class="hero-trust">
@@ -756,7 +701,7 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
         </svg>
         <h2>Take Control of Your Healthcare</h2>
         <p>Your history, prescriptions and medication schedule — organized in one calm, secure place. Setting up takes less than two minutes.</p>
-        <button class="btn btn-coral" data-open-modal type="button">Book Your Appointment<svg class="ic ic-16"><use href="#i-arrow-right"></use></svg></button>
+        <a class="btn btn-coral" href="appointment.html" data-appointment-link>Book Your Appointment<svg class="ic ic-16"><use href="#i-arrow-right"></use></svg></a>
       </div>
     </div>
   </section>
@@ -782,7 +727,7 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
           <li><a href="#home">Home</a></li>
           <li><a href="#services">Services</a></li>
           <li><a href="#about">How it works</a></li>
-          <li><a href="#" data-open-modal>Book an appointment</a></li>
+          <li><a href="appointment.html" data-appointment-link>Book an appointment</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -816,122 +761,11 @@ h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
   </div>
 </footer>
 
-<!-- ============ Appointment modal ============ -->
-<!-- BACKEND INTEGRATION: with JavaScript enabled this form is intercepted and sent
-     via fetch() (see the submit handler). Without JavaScript it performs a native
-     POST to the action URL, so the endpoint receives standard form fields:
-     full_name, phone, email, specialty, doctor, date, time_slot, reason, consent. -->
-<div class="overlay" id="overlay" aria-hidden="true">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-    <button class="modal-close" id="modalClose" type="button" aria-label="Close dialog"><svg class="ic ic-16"><use href="#i-close"></use></svg></button>
-
-    <div id="modalFormView">
-      <h3 id="mTitle">Book an appointment</h3>
-      <p class="modal-sub">Tell us what you need — a confirmed doctor and time will follow.</p>
-      <form id="apptForm" action="/api/v1/appointments" method="post" novalidate>
-        <div class="form-grid">
-          <div class="field" id="fNameField">
-            <label for="fName">Full name</label>
-            <input class="tinput" type="text" id="fName" name="full_name" placeholder="Jane Doe" autocomplete="name">
-            <small class="err">Please enter your full name.</small>
-          </div>
-          <div class="field" id="fPhoneField">
-            <label for="fPhone">Phone</label>
-            <input class="tinput" type="tel" id="fPhone" name="phone" placeholder="+1 555 000 1234" inputmode="tel" autocomplete="tel">
-            <small class="err">Please enter a valid phone number.</small>
-          </div>
-          <div class="field full" id="fEmailField">
-            <label for="fEmail">Email</label>
-            <input class="tinput" type="email" id="fEmail" name="email" placeholder="jane@example.com" autocomplete="email">
-            <small class="err">Please enter a valid email address.</small>
-          </div>
-          <div class="field" id="fSpecField">
-            <label for="fSpec">Specialty</label>
-            <div class="sel-wrap">
-              <select class="tinput" id="fSpec" name="specialty">
-                <option value="" disabled selected>Select specialty</option>
-                <option>General Medicine</option>
-                <option>Cardiology</option>
-                <option>Pediatrics</option>
-                <option>Dermatology</option>
-              </select>
-              <svg class="ic"><use href="#i-chevron-down"></use></svg>
-            </div>
-            <small class="err">Please choose a specialty.</small>
-          </div>
-          <div class="field" id="fDocField">
-            <label for="fDoc">Doctor</label>
-            <div class="sel-wrap">
-              <select class="tinput" id="fDoc" name="doctor" disabled>
-                <option value="" disabled selected>Select doctor</option>
-              </select>
-              <svg class="ic"><use href="#i-chevron-down"></use></svg>
-            </div>
-            <small class="err">Please choose a doctor.</small>
-          </div>
-          <div class="field full" id="fDateField">
-            <label for="fDate">Preferred date</label>
-            <input class="tinput" type="date" id="fDate" name="date">
-            <small class="err">Please pick a date.</small>
-          </div>
-          <div class="field full" id="fSlot">
-            <label id="slotLabel">Preferred time</label>
-            <div class="slots" role="group" aria-labelledby="slotLabel">
-              <button type="button" class="slot" data-slot="09:00">09:00</button>
-              <button type="button" class="slot" data-slot="10:00">10:00</button>
-              <button type="button" class="slot" data-slot="11:00">11:00</button>
-              <button type="button" class="slot" data-slot="12:00">12:00</button>
-              <button type="button" class="slot" data-slot="14:00">14:00</button>
-              <button type="button" class="slot" data-slot="15:00">15:00</button>
-              <button type="button" class="slot" data-slot="16:00">16:00</button>
-              <button type="button" class="slot" data-slot="17:00">17:00</button>
-            </div>
-            <input type="hidden" name="time_slot" id="timeSlotField" value="">
-            <small class="err">Please select a time slot.</small>
-          </div>
-          <div class="field full">
-            <label for="fReason">Reason for visit <span style="font-weight:400;color:rgba(30,42,58,.5)">(optional)</span></label>
-            <textarea class="tinput" id="fReason" name="reason" rows="2" placeholder="Briefly describe your concern"></textarea>
-          </div>
-          <div class="field full" id="fConsentField">
-            <label class="consent" for="fConsent">
-              <input type="checkbox" id="fConsent" name="consent" value="accepted">
-              <span>I consent to MediCare+ processing this request in line with the platform's privacy practices.</span>
-            </label>
-            <small class="err">Consent is required to submit a request.</small>
-          </div>
-          <!-- Honeypot: humans never see or fill this. If it arrives filled, reject silently. -->
-          <input type="text" name="company" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-        </div>
-        <button class="btn btn-primary btn-block" id="submitBtn" type="submit">
-          <span class="btn-label">Request appointment<svg class="ic ic-16"><use href="#i-arrow-right"></use></svg></span>
-          <span class="spinner" aria-hidden="true"></span>
-        </button>
-      </form>
-    </div>
-
-    <div class="modal-success" id="modalSuccess" hidden>
-      <svg class="succ-check" viewBox="0 0 72 72" aria-hidden="true">
-        <circle cx="36" cy="36" r="31" pathLength="100"/>
-        <path d="M23 37.5 32 46.5 49 27" pathLength="100"/>
-      </svg>
-      <h3>Request received</h3>
-      <div class="sum-line" id="sumLine"></div>
-      <p class="ref">Reference <strong id="refCode">MC-00000</strong></p>
-      <p class="succ-note">The doctor has been notified of your request. You will receive a confirmation as soon as the appointment is accepted.</p>
-      <div class="succ-actions">
-        <button class="btn btn-primary" id="doneBtn" type="button">Done</button>
-        <button class="btn btn-outline" id="againBtn" type="button">Book another</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <noscript>
   <div style="position:fixed;bottom:0;left:0;right:0;z-index:500;background:#0B1F3A;color:#fff;font-family:'Poppins',sans-serif;font-size:14px;padding:14px 24px;text-align:center">
-    MediCare+ works best with JavaScript enabled. Appointment requests can still be submitted using the booking form.
+    MediCare+ works best with JavaScript enabled.
   </div>
 </noscript>
 
@@ -945,6 +779,16 @@ const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').mat
 /* ---------- Version + year (from runtime config) ---------- */
  $('#year').textContent = new Date().getFullYear();
  $('#appVer').textContent = 'v' + (window.MEDICARE ? window.MEDICARE.APP_VERSION : '1.0.0');
+
+/* ---------- Appointment links: one config value drives all of them ----------
+   Every element with [data-appointment-link] gets its href set from
+   MEDICARE.APPOINTMENT_URL. When the dedicated appointment site is ready,
+   change APPOINTMENT_URL in the <head> config — no other edits needed.   */
+if (window.MEDICARE && window.MEDICARE.APPOINTMENT_URL){
+  $$('[data-appointment-link]').forEach(function(a){
+    a.setAttribute('href', window.MEDICARE.APPOINTMENT_URL);
+  });
+}
 
 /* ---------- Nav scroll state ---------- */
 const nav = $('#nav');
@@ -966,6 +810,9 @@ menuBtn.addEventListener('click', function(){
   menuBtn.setAttribute('aria-expanded', String(open));
 });
  $$('#mobileMenu a').forEach(function(a){ a.addEventListener('click', closeMenu); });
+window.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') closeMenu();
+});
 
 /* ---------- Reveal on scroll ---------- */
 const revealIO = new IntersectionObserver(function(entries){
@@ -1072,150 +919,100 @@ function toast(type, title, msg){
   setTimeout(kill, 4600);
 }
 
-/* ---------- Appointment modal ---------- */
-const overlay = $('#overlay');
-let lastFocus = null;
-function openModal(){
-  lastFocus = document.activeElement;
-  closeMenu();
-  $('#modalFormView').hidden = false;
-  $('#modalSuccess').hidden = true;
-  overlay.classList.add('open');
-  overlay.setAttribute('aria-hidden','false');
-  document.body.style.overflow = 'hidden';
-  setTimeout(function(){ $('#fName').focus(); }, 100);
-}
-function closeModal(){
-  overlay.classList.remove('open');
-  overlay.setAttribute('aria-hidden','true');
-  document.body.style.overflow = '';
-  if (lastFocus) lastFocus.focus();
-}
- $$('[data-open-modal]').forEach(function(b){
-  b.addEventListener('click', function(e){
-    if (b.getAttribute('href') === '#') e.preventDefault();
-    openModal();
-  });
-});
- $('#modalClose').addEventListener('click', closeModal);
-overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
-window.addEventListener('keydown', function(e){
-  if (e.key === 'Escape'){ closeModal(); closeMenu(); }
-});
-
-/* Doctor data — BACKEND INTEGRATION: replace with
-   fetch(MEDICARE.API_BASE_URL + '/doctors?specialty=' + encodeURIComponent(value)) */
+/* =====================================================================
+   DOCTOR DIRECTORY — 12 specialties × 20 doctors (240 total)
+   This data currently powers no UI on this page. It is kept here as the
+   ready-made data source for the dedicated appointment site / backend:
+   - Frontend use : copy this object into the appointment site, or
+   - Backend use  : seed your doctors table with it, then serve it via
+                    GET /doctors?specialty=... and delete this block.
+===================================================================== */
 const DOCTORS = {
-  'General Medicine': ['Dr. Amara Okafor','Dr. James Whitfield'],
-  'Cardiology':       ['Dr. Sarah Mitchell','Dr. Omar Haddad'],
-  'Pediatrics':       ['Dr. Elena Petrova','Dr. Priya Nair'],
-  'Dermatology':      ['Dr. Marcus Chen']
+  'General Medicine': [
+    'Dr. Amara Okafor','Dr. James Whitfield','Dr. Hannah Lee','Dr. Robert Mensah',
+    'Dr. Sofia Andersson','Dr. Miguel Santos','Dr. Ayesha Khan','Dr. David Cohen',
+    'Dr. Lucia Moretti','Dr. Andre Baptiste','Dr. Mei Ling Chen','Dr. Jonas Weber',
+    'Dr. Fatou Diallo','Dr. Ivan Petrov','Dr. Sara Haddad','Dr. Tomas Silva',
+    'Dr. Nadia Rahman','Dr. Peter Novak','Dr. Amina Yusuf','Dr. George Peterson'
+  ],
+  'Cardiology': [
+    'Dr. Sarah Mitchell','Dr. Omar Haddad','Dr. Elena Vasquez','Dr. Kwame Boateng',
+    'Dr. Hiroshi Tanaka','Dr. Clara Fontaine','Dr. Rajesh Iyer','Dr. Marta Kowalski',
+    'Dr. Ahmed El-Sayed','Dr. Bianca Rossi','Dr. Lukas Meyer','Dr. Folake Adeyemi',
+    'Dr. Mateo Alvarez','Dr. Ingrid Johansson','Dr. Tariq Aziz','Dr. Camille Laurent',
+    'Dr. Stefan Mueller','Dr. Priyanka Desai','Dr. Gabriel Costa','Dr. Yasmine Farouk'
+  ],
+  'Pediatrics': [
+    'Dr. Elena Petrova','Dr. Priya Nair','Dr. Sofia Ramirez','Dr. Daniel Kim',
+    'Dr. Emma Wilson','Dr. Carlos Mendez','Dr. Amina Suleiman','Dr. Felix Wagner',
+    'Dr. Grace Kimani','Dr. Nina Ivanova','Dr. Oliver Hayes','Dr. Leila Nasser',
+    'Dr. Marco Ricci','Dr. Ananya Rao','Dr. Henrik Larsen','Dr. Zoe Papadopoulos',
+    'Dr. Samuel Ochieng','Dr. Valeria Cruz','Dr. Adam Kowalczyk','Dr. Rania Khalil'
+  ],
+  'Dermatology': [
+    'Dr. Marcus Chen','Dr. Layla Hassan','Dr. Thomas Berg','Dr. Isabella Romano',
+    'Dr. Kwesi Adjei','Dr. Anna Lindberg','Dr. Rahul Verma','Dr. Cecilia Vega',
+    'Dr. Dmitri Sokolov','Dr. Maya Friedman','Dr. Felipe Duarte','Dr. Sana Iqbal',
+    'Dr. Pieter Van Dijk','Dr. Amel Benali','Dr. Ricardo Fuentes','Dr. Hana Suzuki',
+    'Dr. Victor Adeoye','Dr. Eloise Martin','Dr. Karim Mansour','Dr. Julia Novotna'
+  ],
+  'Neurology': [
+    'Dr. Aisha Rahman','Dr. Viktor Novak','Dr. Grace Adeyemi','Dr. Ethan Caldwell',
+    'Dr. Chiara De Luca','Dr. Nikolai Orlov','Dr. Deepak Menon','Dr. Astrid Nielsen',
+    'Dr. Omar Bahri','Dr. Rebecca Stern','Dr. Tunde Balogun','Dr. Katarina Horvat',
+    'Dr. Javier Ortega','Dr. Lin Wei','Dr. Samuel Getachew','Dr. Petra Simon',
+    'Dr. Jonas Krause','Dr. Zainab Al-Rashid','Dr. Matej Kovac','Dr. Helena Marsh'
+  ],
+  'Orthopedics': [
+    'Dr. Michael Torres','Dr. Ingrid Olsen','Dr. Samuel Osei','Dr. Alexandra Petrov',
+    'Dr. Rafael Dominguez','Dr. Yuki Nakamura','Dr. Yusuf Abebe','Dr. Claire Moreau',
+    'Dr. Andrei Popescu',"Dr. Hannah O'Connell",'Dr. Malik Johnson','Dr. Freja Sorensen',
+    'Dr. Paulo Oliveira','Dr. Halima Bello','Dr. Georgios Papadakis','Dr. Maja Eriksen',
+    'Dr. Daniel Okoye','Dr. Rachel Goldstein','Dr. Emre Yilmaz','Dr. Marta Vidal'
+  ],
+  'Gynecology': [
+    'Dr. Fatima Al-Sayed','Dr. Rebecca Stone','Dr. Nadia Karim','Dr. Olivia Bennett',
+    'Dr. Carmen Jimenez','Dr. Lakshmi Pillai','Dr. Annelise Schmidt','Dr. Zainab Musa',
+    'Dr. Alessia Conti','Dr. Hauwa Mohammed','Dr. Elin Hedlund','Dr. Margaux Renaud',
+    'Dr. Esther Mwangi','Dr. Ioana Dobre','Dr. Aoife Byrne','Dr. Rosa Delgado',
+    'Dr. Nargis Rahimi','Dr. Freya Andersen','Dr. Tatiana Volkova','Dr. Amal Osman'
+  ],
+  'Ophthalmology': [
+    'Dr. Kenji Watanabe','Dr. Clara Mendes','Dr. Arjun Malhotra','Dr. Elena Marchetti',
+    'Dr. Yousef Amin','Dr. Marlene Baumann','Dr. Paul Okonkwo','Dr. Chiara Marino',
+    'Dr. Erik Sundberg','Dr. Divya Raman','Dr. Tiago Alves','Dr. Mariama Sow',
+    'Dr. Jack Thompson','Dr. Leila Amrani','Dr. Mihai Kovacs','Dr. Maya Krishnan',
+    'Dr. Ole Hansen','Dr. Ruth Bekele','Dr. Andre Lefevre','Dr. Farida Zaman'
+  ],
+  'ENT': [
+    'Dr. Oliver Brandt','Dr. Maya Deshpande','Dr. Sebastian Vogel','Dr. Aminata Toure',
+    'Dr. Ryan Carter','Dr. Elena Sousa','Dr. Vikram Sethi','Dr. Marta Nowak',
+    'Dr. Femi Adebayo','Dr. Clara Jensen','Dr. Hamza Sheikh','Dr. Isabelle Girard',
+    'Dr. Diego Rivera','Dr. Greta Hoffmann','Dr. Omar Siddiqui','Dr. Lena Fischer',
+    'Dr. Kwabena Frimpong','Dr. Silvia Ramos','Dr. Arda Demir','Dr. Nicole Tran'
+  ],
+  'Psychiatry': [
+    'Dr. Jonathan Hale','Dr. Amira Zaidi','Dr. Matthew Webb','Dr. Celeste Fournier',
+    'Dr. Rohan Kapoor','Dr. Eleni Stavrou','Dr. Tobi Ogunlesi','Dr. Clara Hughes',
+    'Dr. Joaquin Rivas','Dr. Leah Cohen','Dr. Simon Keller','Dr. Alia Malik',
+    'Dr. Pedro Almeida','Dr. Nour Abdallah','Dr. Sven Lindgren','Dr. Tara Brennan',
+    'Dr. Kenan Yildiz','Dr. Zoya Mirza','Dr. Felix Hartmann','Dr. Salma Moussa'
+  ],
+  'Dentistry': [
+    'Dr. Lucas Ferreira','Dr. Chloe Dubois','Dr. Adrian Moldovan','Dr. Priya Anand',
+    'Dr. Nathan Brooks','Dr. Selin Aydin','Dr. Mohamed Farah','Dr. Giulia Esposito',
+    'Dr. Henrik Dahl','Dr. Mariam Kamara','Dr. Jason Reynolds','Dr. Milena Jovanovic',
+    'Dr. Carlos Tavares','Dr. Solveig Nilsson','Dr. Idris Bala','Dr. Victoria Lane',
+    'Dr. Ahmed Nur','Dr. Agnes Molnar','Dr. Rohit Chandra','Dr. Elsa Berger'
+  ],
+  'Endocrinology': [
+    'Dr. Anika Sharma','Dr. Peter Lindqvist','Dr. Julius Kariuki','Dr. Mariana Fonseca',
+    'Dr. Wei Zhang','Dr. Sigrid Nyberg','Dr. Ali Rezaei','Dr. Francesca Greco',
+    'Dr. Daniel Mutua','Dr. Hana Saleh','Dr. Magnus Holm','Dr. Paloma Herrera',
+    'Dr. Sergei Fedorov','Dr. Chiamaka Obi','Dr. Riya Patel','Dr. Anders Vik',
+    'Dr. Samira Nasr','Dr. Gregory Warner','Dr. Leilani Kealoha','Dr. Oscar Peralta'
+  ]
 };
-const specSel = $('#fSpec'), docSel = $('#fDoc');
-specSel.addEventListener('change', function(){
-  docSel.innerHTML = '<option value="" disabled selected>Select doctor</option>';
-  (DOCTORS[specSel.value] || []).forEach(function(d){
-    const o = document.createElement('option'); o.value = d; o.textContent = d; docSel.appendChild(o);
-  });
-  docSel.disabled = false;
-});
-
-/* Time slots — keep the hidden field in sync so native POSTs carry the value too */
- $$('.slot').forEach(function(s){
-  s.addEventListener('click', function(){
-    $$('.slot').forEach(function(x){ x.classList.remove('active'); });
-    s.classList.add('active');
-    $('#timeSlotField').value = s.dataset.slot;
-    $('#fSlot').classList.remove('invalid');
-  });
-});
-
-/* Date min = today */
- $('#fDate').min = new Date().toISOString().split('T')[0];
-
-/* Validation + submit */
-function setInvalid(id, bad){ $('#' + id).classList.toggle('invalid', bad); return bad; }
- $('#apptForm').addEventListener('submit', function(e){
-  e.preventDefault();
-  const form = e.target;
-
-  /* Honeypot: if a bot filled it, exit quietly — nothing is sent. */
-  if (form.elements.company.value){ return; }
-
-  let firstBad = null;
-  const check = function(id, cond){
-    setInvalid(id, cond);
-    if (cond && !firstBad) firstBad = id;
-  };
-  check('fNameField',  $('#fName').value.trim().length < 2);
-  check('fEmailField', !/^\S+@\S+\.\S+$/.test($('#fEmail').value.trim()));
-  check('fPhoneField', !/^[+(]?[\d\s()-]{6,}$/.test($('#fPhone').value.trim()));
-  check('fSpecField',  !specSel.value);
-  check('fDocField',   !docSel.value);
-  check('fDateField',  !$('#fDate').value);
-  check('fSlot',       !$('.slot.active'));
-  check('fConsentField', !$('#fConsent').checked);
-
-  if (firstBad){
-    if (firstBad === 'fSlot'){ $('.slot').focus(); }
-    else {
-      const ctrl = $('#' + firstBad).querySelector('input, select, textarea');
-      if (ctrl) ctrl.focus();
-    }
-    return;
-  }
-
-  const btn = $('#submitBtn');
-  btn.classList.add('loading'); btn.disabled = true;
-
-  /* ================================================================
-     BACKEND INTEGRATION POINT
-     Replace the simulated delay below with a real request, e.g.:
-
-     fetch(window.MEDICARE.API_BASE_URL + '/appointments', {
-       method: 'POST',
-       headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify(Object.fromEntries(new FormData(form)))
-     })
-       .then(function(res){
-         if (!res.ok) throw new Error('Request failed: ' + res.status);
-         return res.json();              // expected: { reference: "MC-8F3K2" }
-       })
-       .then(function(data){ showSuccess(data.reference); })
-       .catch(function(err){ toast('error', 'Something went wrong', 'Please try again in a moment.'); })
-       .finally(function(){ btn.classList.remove('loading'); btn.disabled = false; });
-  ================================================================ */
-  setTimeout(function(){
-    btn.classList.remove('loading'); btn.disabled = false;
-    const ref = 'MC-' + Math.random().toString(36).slice(2, 7).toUpperCase();
-    showSuccess(ref);
-    toast('success', 'Appointment requested', 'The doctor has been notified — confirmation to follow.');
-  }, 900);
-});
-
-function showSuccess(reference){
-  const dt = new Date($('#fDate').value + 'T00:00');
-  $('#sumLine').textContent = docSel.value + ' · ' +
-    dt.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' }) +
-    ' at ' + $('.slot.active').dataset.slot;
-  $('#refCode').textContent = reference;
-  $('#modalFormView').hidden = true;
-  $('#modalSuccess').hidden = false;
-  setTimeout(function(){ $('#doneBtn').focus(); }, 120);
-}
-
- $('#doneBtn').addEventListener('click', closeModal);
- $('#againBtn').addEventListener('click', function(){
-  $('#apptForm').reset();
-  docSel.disabled = true;
-  docSel.innerHTML = '<option value="" disabled selected>Select doctor</option>';
-  $$('.slot').forEach(function(x){ x.classList.remove('active'); });
-  $('#timeSlotField').value = '';
-  $$('.field.invalid').forEach(function(f){ f.classList.remove('invalid'); });
-  $('#modalSuccess').hidden = true;
-  $('#modalFormView').hidden = false;
-  setTimeout(function(){ $('#fName').focus(); }, 60);
-});
 
 /* ---------- Services: expandable cards + footer deep links ---------- */
 function setCardOpen(card, open){
