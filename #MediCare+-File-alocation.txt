@@ -1,0 +1,45 @@
+medicare-plus/
+├── index.html                 # §21–33 landing page — CSS + JS inline
+├── app.html                   # the ENTIRE application — auth + all 3 dashboards
+│                              #   CSS + JS inline, hash routing (#/patient, #/doctor...)
+├── firestore.rules            # §14/§15/§18 — MORE important now, see below
+├── firestore.indexes.json     # the queries app.html runs
+├── firebase.json              # hosting config
+└── firebase-messaging-sw.js   # optional, add later for closed-tab notifications (§12)
+app.html  (target: ~2,500 lines total)
+│
+├── <style>                          ~600 lines, comment-banner sections
+│   /* 1. Design tokens — §23 hex values + Poppins (§24) */
+│   /* 2. Base + pill buttons — §32 */
+│   /* 3. Components: cards, badges, tables, modals, toasts */
+│   /* 4. Dashboard shell: sidebar + topbar */
+│   /* 5. Patient view styles */
+│   /* 6. Doctor view styles */
+│   /* 7. Admin view styles */
+│   /* 8. Responsive ~900px — §31 */
+│
+├── <body>
+│   ├── #view-auth        → login / register / reset forms
+│   ├── #view-app         → sidebar + topbar + <main> containing:
+│   │      data-view="patient"  → dashboard, find doctor, appointments,
+│   │                             prescriptions, medications, history, profile
+│   │      data-view="doctor"   → schedule, consultation, prescription builder, history
+│   │      data-view="admin"    → users, verification, audit logs
+│   └── modal + toast containers
+│
+└── <script type="module">           ~1,500 lines, comment-banner sections
+    /* 1. Firebase init (CDN: app, auth, firestore) */
+    /* 2. Constants: roles, §8 statuses */
+    /* 3. Utils: $, dates, toast, escapeHtml */
+    /* 4. Schedule generator — §11: prescription → dose list,
+          THROWS if required times are missing (never guesses, §11) */
+    /* 5. Router: hash → view, role guard from custom claims */
+    /* 6. Auth: register/login/reset, read claim → role */
+    /* 7. Patient logic: booking (runTransaction for slot conflict, §8),
+          onSnapshot on own reminders/prescriptions/history */
+    /* 8. Doctor logic: accept/reject, prescription builder →
+          generate schedule → batch-write medication_reminders
+          with deterministic IDs (no duplicates, §39) */
+    /* 9. Admin logic: user lists, verify doctor (set custom claim) */
+    /* 10. Reminder ticker: onSnapshot → Notification API + in-app toast */
+    /* 11. Boot */
