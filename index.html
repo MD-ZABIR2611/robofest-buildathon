@@ -24,9 +24,12 @@
      Prefer SVG? Just change the path below, e.g. assets/logo.svg
      If the file is missing, a built-in fallback mark is shown automatically.
 ====================================================================== -->
-<link rel="icon" type="image/png" href="robofestlogo.png">
-<link rel="apple-touch-icon" href="robofestlogo.png">
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="apple-touch-icon" href="assets/logo.png">
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <script>
 /* =====================================================================
@@ -59,7 +62,7 @@ window.LOGO_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
     var link = document.querySelector('link[rel="icon"]');
     if (link) link.href = window.LOGO_FALLBACK;
   };
-  probe.src = 'robofestlogo.png';
+  probe.src = 'assets/logo.png';
 })();
 </script>
 
