@@ -1,1235 +1,1386 @@
-# MediCare+
+# MediCare+ — Complete User Well-Being & Digital Healthcare System
 
-## Digital Healthcare Management & Medication Reminder Platform
+Build a complete, modern, responsive full-stack healthcare and user well-being web application called **MediCare+**.
 
-**Product Name:** MediCare+
-**Industry:** Medical / MedTech / Digital Healthcare
-**Platform Type:** Full-Stack Web Application
-**Primary Users:** Patients, Doctors, Healthcare Providers, Administrators
-**Interface Theme:** Light Mode
-**Design Direction:** Modern Healthcare SaaS — Clean, Trustworthy, Calm, Human
-**Primary Goals:** Medical History Management, Digital Prescriptions, Automated Medication Reminders, Doctor Consultations, and Appointment Scheduling
+The application must combine:
 
----
-
-# 1. Executive Summary
-
-**MediCare+** is a full-stack digital healthcare management platform designed to connect patients and healthcare professionals through a secure and organized digital environment.
-
-The platform allows patients to manage their healthcare information, schedule appointments, view prescriptions, and receive automated medication reminders.
-
-Doctors can manage appointments, review authorized patient medical history during consultations, and create digital prescriptions. Once a prescription is submitted, MediCare+ automatically processes the medication schedule and generates reminders for the patient.
-
-The system is designed to reduce manual work, improve organization, and help patients follow prescribed medication schedules more consistently.
-
-MediCare+ consists of two major components:
-
-1. **Public Marketing Website** — introduces MediCare+, its services, benefits, and appointment system.
-2. **Secure Healthcare Application** — provides patient, doctor, and administrative functionality.
-
----
-
-# 2. Product Vision
-
-The vision of MediCare+ is to create a simple, secure, and organized digital healthcare platform where important healthcare information and routine healthcare tasks can be managed from one place.
-
-The platform connects:
-
-**Patient → Appointment → Doctor Consultation → Medical History → Prescription → Automatic Medication Schedule → Patient Reminder**
-
-This workflow is the central concept of MediCare+.
-
----
-
-# 3. Primary Objectives
-
-MediCare+ should:
-
-* Digitally organize patient medical histories.
-* Allow authorized doctors to access relevant patient records.
-* Allow patients to schedule appointments online.
-* Allow doctors to manage appointments.
-* Allow doctors to create digital prescriptions.
-* Automatically generate medication reminders from prescriptions.
-* Notify patients when medication should be taken.
-* Maintain prescription and consultation history.
-* Protect sensitive healthcare information.
-* Provide separate permissions for patients, doctors, and administrators.
-* Reduce unnecessary paper-based healthcare management.
-* Provide a professional and trustworthy healthcare experience.
-
----
-
-# 4. User Roles
-
-## 4.1 Patient
-
-Patients are the primary end users of the platform.
-
-Patients can:
-
-* Register an account.
-* Log in securely.
-* Manage their profile.
-* View their medical history.
-* View authorized medical records.
-* View current and previous prescriptions.
-* Receive medication reminders.
-* View medication schedules.
-* Mark medication as taken, skipped, or missed if this functionality is enabled.
-* Search for available doctors.
-* Request or schedule appointments.
-* View upcoming appointments.
-* Receive appointment reminders.
-* View consultation history.
-* Manage notification preferences.
-
-Patients must not be able to modify doctor-created prescriptions.
-
----
-
-# 5. Doctor System
-
-Doctors have a dedicated dashboard.
-
-Doctors can:
-
-* Register or be added to the platform.
-* Maintain their professional profile.
-* View their appointment schedule.
-* Accept, reject, or manage appointment requests where applicable.
-* Access authorized patient information.
-* Review relevant medical history during an authorized consultation.
-* Review previous prescriptions.
-* Create digital prescriptions.
-* Specify medicine names, dosage, frequency, duration, and instructions.
-* Publish prescriptions to patients.
-* Add appropriate consultation notes.
-* View previous consultations performed by the doctor.
-
-Doctor access to patient medical information must be controlled by the platform's authorization system.
-
----
-
-# 6. Administrator System
-
-MediCare+ should include an administrative backend.
-
-Administrators may manage:
-
-* Patient accounts.
-* Doctor accounts.
-* Doctor verification.
-* User account status.
-* Appointments.
-* Platform configuration.
-* Reports and system statistics.
-* Security events.
-* Support requests.
-* System notifications.
-
-Administrative access to medical information should be restricted to what is technically necessary and permitted by the platform's policies.
-
-All sensitive administrative actions should be logged.
-
----
-
-# 7. Medical History System
-
-The medical history system is one of the core components of MediCare+.
-
-A patient's record may contain:
-
-* Previous illnesses.
-* Known allergies.
-* Medical conditions.
-* Previous consultations.
-* Previous prescriptions.
-* Medication history.
-* Relevant diagnostic information.
-* Doctor notes where applicable.
-* Other healthcare information permitted by the system.
-
-Records should be organized chronologically.
-
-### Medical history workflow
-
-Patient creates account
+**Patient/User Login**
 ↓
-Patient information is stored securely
+**Book Appointment**
 ↓
-Authorized healthcare information is added
+**Doctor Login**
 ↓
-Consultation occurs
+**Doctor Consultation**
 ↓
-Doctor reviews relevant history
+**Digital Prescription**
 ↓
-Doctor adds appropriate consultation information
+**Automatic Prescription Delivery**
 ↓
-Prescription is created if required
+**Automatic Medication Timer/Reminder**
 ↓
-Record becomes part of the patient's healthcare history
+**Medical History Updated**
+
+The core concept and workflow MUST remain unchanged.
 
 ---
 
-# 8. Appointment Management System
+# 1. IMPORTANT DESIGN RULE
 
-Patients should be able to schedule appointments directly through MediCare+.
+## CSS / VISUAL DESIGN ONLY
 
-## Patient Workflow
+The provided design reference should be used **ONLY for the CSS and visual design direction**.
 
-1. Patient logs into the platform.
-2. Patient selects a doctor.
-3. Patient views available appointment slots.
-4. Patient chooses a suitable date and time.
-5. Patient submits an appointment request.
-6. The system records the appointment.
-7. The doctor receives the appointment information.
-8. The patient receives the appointment status.
-9. The system can send an appointment reminder.
+Do **NOT** change the MediCare+ functionality because of the design.
 
-## Appointment Statuses
+The design reference controls things such as:
 
-The backend should support statuses such as:
+* Colors
+* Typography
+* Font sizes
+* Font weights
+* Spacing
+* Padding
+* Margins
+* Borders
+* Border radius
+* Shadows
+* Cards
+* Buttons
+* Inputs
+* Navigation styling
+* Sidebar styling
+* Dashboard layout
+* Tables
+* Modals
+* Notifications
+* Hover effects
+* Focus states
+* Transitions
+* Animations
+* Responsive behavior
+* Overall visual hierarchy
 
-* Pending
-* Confirmed
-* Cancelled
-* Completed
-* Rescheduled
-* No-show
+The design reference must **NOT** change:
 
-The exact workflow can be configured according to the healthcare provider's requirements.
+* Patient/doctor roles
+* Login architecture
+* Appointment system
+* Doctor authorization
+* Medical-history access rules
+* Prescription system
+* Medication timer
+* Notification logic
+* Database structure
+* API behavior
+* Backend security
+* Medical-data privacy
 
----
+### Critical instruction
 
-# 9. Digital Prescription System
+**Reproduce the visual language of the provided design while keeping the MediCare+ functionality defined in this prompt.**
 
-Doctors should be able to create prescriptions through their dashboard.
-
-A prescription should support information such as:
-
-* Medicine name.
-* Dosage.
-* Quantity where applicable.
-* Frequency.
-* Administration instructions.
-* Start date.
-* End date.
-* Duration.
-* Specific medication times.
-* Additional instructions.
-
-Example:
-
-**Medicine:** Medicine A
-**Dosage:** 1 tablet
-**Frequency:** 2 times daily
-**Duration:** 7 days
-
-After the doctor submits the prescription, the backend processes the prescription schedule.
-
----
-
-# 10. Automated Medication Reminder System
-
-The automated medication reminder system is a key feature of MediCare+.
-
-The system should eliminate the need for patients to manually create individual medication alarms when sufficient prescription scheduling information is available.
-
-### Automated workflow
-
-**Doctor creates prescription**
-
-↓
-
-**Prescription is stored in backend**
-
-↓
-
-**Prescription data is validated**
-
-↓
-
-**Medication schedule is generated**
-
-↓
-
-**Reminder jobs are created**
-
-↓
-
-**Patient receives notifications**
-
-↓
-
-**Reminder continues according to prescription duration**
-
-↓
-
-**Reminder automatically ends when the prescribed period finishes**
+Do not copy unrelated functionality from the design reference.
 
 ---
 
-# 11. Reminder Engine
+# 2. BRAND
 
-The backend should contain a dedicated reminder/scheduling component.
-
-The reminder engine should be capable of:
-
-* Creating reminder schedules.
-* Handling multiple medications.
-* Handling different frequencies.
-* Handling different treatment durations.
-* Handling specific medication times.
-* Updating schedules when an authorized prescription changes.
-* Automatically stopping expired schedules.
-* Avoiding duplicate reminders.
-* Recording reminder events.
-* Handling notification failures.
-
-### Example
-
-A doctor enters:
-
-**Medicine:** Medicine A
-**Dosage:** 1 tablet
-**Frequency:** 3 times daily
-**Duration:** 5 days
-
-The system creates the corresponding medication schedule for the patient.
-
-If the doctor specifies exact times, those times should be used.
-
-If the prescription does not contain enough information to safely determine a schedule, the system should not guess. It should require clarification or additional information from the authorized healthcare professional.
-
----
-
-# 12. Notification System
-
-MediCare+ should provide a notification infrastructure for:
-
-### Medication Notifications
-
-* Medication due.
-* Medication schedule updates.
-* Medication schedule completed.
-
-### Appointment Notifications
-
-* Appointment confirmation.
-* Appointment reminder.
-* Appointment cancellation.
-* Appointment rescheduling.
-
-### Account Notifications
-
-* Security alerts.
-* Important account changes.
-* System notifications.
-
-Notification delivery may support:
-
-* In-app notifications.
-* Browser notifications.
-* Email.
-* Mobile push notifications in future versions.
-
----
-
-# 13. Medication Tracking
-
-If enabled, patients can interact with medication reminders.
-
-Possible statuses include:
-
-**Taken**
-
-**Skipped**
-
-**Missed**
-
-The backend can record these events with appropriate timestamps.
-
-This information can later be displayed as a medication adherence history.
-
-However, medication tracking should be treated as a record of user interaction and should not be interpreted by the system as a medical diagnosis.
-
----
-
-# 14. Doctor Medical History Access
-
-Patient medical records are highly sensitive.
-
-Therefore, MediCare+ should not provide unrestricted access to patient records.
-
-The system should use controlled authorization.
-
-A doctor should be able to access relevant patient history when:
-
-* The doctor is authorized by the system.
-* The patient has an appropriate appointment or consultation relationship.
-* The access is permitted by the platform's rules.
-
-Where the product requirement specifies that doctors can check history **during the visit only**, the backend should enforce a time-limited access session.
-
-Example:
-
-**Appointment starts**
-
-↓
-
-**Doctor receives authorized patient-record access**
-
-↓
-
-**Doctor reviews medical history**
-
-↓
-
-**Consultation ends**
-
-↓
-
-**Temporary consultation access expires**
-
-The system should log this access.
-
----
-
-# 15. Role-Based Access Control
-
-MediCare+ should implement role-based access control.
-
-| Feature                  | Patient |        Doctor |      Admin |
-| ------------------------ | ------: | ------------: | ---------: |
-| Own Profile              |     Yes |           Yes | Controlled |
-| Book Appointment         |     Yes |            No |     Manage |
-| Manage Doctor Schedule   |      No |           Yes |     Manage |
-| View Own Medical History |     Yes |            No | Controlled |
-| View Patient History     |      No |    Authorized | Restricted |
-| Create Prescription      |      No |           Yes |         No |
-| View Own Prescription    |     Yes |           Yes | Restricted |
-| Medication Reminders     |     Yes | Manage/Review |         No |
-| Manage Users             |      No |            No |        Yes |
-| Security Logs            |      No |       Limited |        Yes |
-
-Permissions must be enforced by the backend rather than only by hiding interface elements.
-
----
-
-# 16. Backend Architecture
-
-MediCare+ should use a secure backend responsible for business logic, authentication, data storage, authorization, appointment management, prescription processing, and notification scheduling.
-
-A possible architecture is:
-
-**Frontend**
-
-→ Patient Interface
-→ Doctor Dashboard
-→ Admin Dashboard
-
-↓
-
-**Backend API**
-
-→ Authentication
-→ Authorization
-→ Patient Management
-→ Doctor Management
-→ Appointment Service
-→ Prescription Service
-→ Medical History Service
-→ Medication Scheduler
-→ Notification Service
-→ Audit Logging
-
-↓
-
-**Database**
-
-→ Users
-→ Patients
-→ Doctors
-→ Medical Records
-→ Appointments
-→ Prescriptions
-→ Medications
-→ Medication Schedules
-→ Reminder Events
-→ Notifications
-→ Audit Logs
-
----
-
-# 17. Suggested Database Structure
-
-The exact database technology may vary, but the application should logically separate important entities.
-
-### Users
-
-Stores authentication and account information.
-
-Possible fields:
-
-* User ID
-* Name
-* Email
-* Password hash
-* Role
-* Account status
-* Created date
-
-### Patients
-
-Stores patient-specific profile information.
-
-Possible fields:
-
-* Patient ID
-* User ID
-* Date of birth
-* Contact information
-* Emergency contact where appropriate
-
-### Doctors
-
-Possible fields:
-
-* Doctor ID
-* User ID
-* Professional information
-* Specialty
-* License/verification status
-* Availability
-
-### Medical Records
-
-Possible fields:
-
-* Record ID
-* Patient ID
-* Record type
-* Record content
-* Created by
-* Created date
-* Updated date
-
-### Appointments
-
-Possible fields:
-
-* Appointment ID
-* Patient ID
-* Doctor ID
-* Date
-* Time
-* Status
-* Created date
-
-### Prescriptions
-
-Possible fields:
-
-* Prescription ID
-* Patient ID
-* Doctor ID
-* Appointment ID
-* Created date
-* Start date
-* End date
-* Status
-
-### Prescription Medicines
-
-Possible fields:
-
-* Medicine ID
-* Prescription ID
-* Medicine name
-* Dosage
-* Frequency
-* Instructions
-* Duration
-* Scheduled times
-
-### Medication Reminders
-
-Possible fields:
-
-* Reminder ID
-* Patient ID
-* Medicine ID
-* Scheduled time
-* Status
-* Notification status
-
-### Audit Logs
-
-Possible fields:
-
-* Log ID
-* User ID
-* Action
-* Resource accessed
-* Timestamp
-* Relevant security metadata
-
----
-
-# 18. Authentication & Security
-
-Because MediCare+ handles sensitive healthcare information, security must be treated as a core system requirement.
-
-The backend should implement:
-
-* Secure authentication.
-* Password hashing.
-* Session/token security.
-* Role-based authorization.
-* Secure API endpoints.
-* Input validation.
-* Protection against unauthorized record access.
-* Rate limiting where appropriate.
-* Audit logging.
-* Secure password recovery.
-* Session expiration.
-* Protection against common web vulnerabilities.
-* Encrypted network communication using HTTPS.
-
-Sensitive medical information should not be exposed through frontend-only security mechanisms.
-
----
-
-# 19. Audit Logging
-
-Important healthcare and security actions should be logged.
-
-Examples include:
-
-* Doctor accessing patient history.
-* Prescription creation.
-* Prescription modification.
-* Prescription cancellation.
-* Appointment creation.
-* Appointment cancellation.
-* Account changes.
-* Authentication events.
-* Administrative actions.
-
-Audit logs should help identify:
-
-**Who accessed the information?**
-
-**What information was accessed?**
-
-**When was it accessed?**
-
-**What action was performed?**
-
----
-
-# 20. Data Privacy
-
-MediCare+ must treat patient information as confidential.
-
-The system should follow applicable healthcare data-protection and privacy requirements based on the countries and healthcare organizations where it is deployed.
-
-The platform should provide appropriate:
-
-* Privacy policies.
-* User consent mechanisms.
-* Data access controls.
-* Data retention policies.
-* Data deletion procedures where legally permitted.
-* Security monitoring.
-* Access logging.
-
-The exact legal requirements should be reviewed with qualified legal and healthcare-compliance professionals before real-world deployment.
-
----
-
-# 21. Marketing Landing Page
-
-The public-facing MediCare+ website should communicate the product's purpose without exposing private patient information.
-
-### Page Type
-
-**Single-page marketing landing page**
-
-### Theme
-
-**Light Mode**
-
-### Target Audience
-
-* Patients of all ages.
-* Clinics.
-* Doctors.
-* Healthcare providers.
-
-### Design Style
-
-**Modern Healthcare SaaS — Clean, Trustworthy, Calm, Human**
-
-### Design Goal
-
-Create a premium, secure health-platform feeling combining clinical cleanliness with warmth.
-
-### Primary Emotional Flow
-
-**Trust → Calm → Action**
-
----
-
-# 22. Critical Icon Policy
-
-**NO EMOJIS SHALL BE USED ANYWHERE IN THE WEBSITE DESIGN.**
-
-This includes:
-
-* Buttons.
-* Badges.
-* Cards.
-* Navigation.
-* Hero section.
-* Statistics.
-* Footer.
-* Decorative elements.
-* Notifications.
-* Floating elements.
-
-All icons should use professional SVG icons.
-
-Recommended styles:
-
-* Lucide
-* Feather
-* Heroicons
-* Font Awesome where appropriate
-
-Icons should use:
-
-* Thin line style.
-* 1.5–2px stroke.
-* Rounded caps.
-* Teal or blue colors only.
-* No multicolor emoji artwork.
-
----
-
-# 23. Visual Design System
-
-## Core Colors
-
-| Token     | Hex     | Usage                       |
-| --------- | ------- | --------------------------- |
-| White     | #FFFFFF | Main background and cards   |
-| Ice Blue  | #F4F9FC | Section backgrounds         |
-| Teal      | #0E9E8E | Primary actions and accents |
-| Teal Dark | #0B7E71 | Hover states                |
-| Blue      | #2D6CDF | Secondary accent            |
-| Mint      | #B8F0E4 | Badges and icon containers  |
-| Coral     | #FF7A6E | Final CTA only              |
-| Body      | #1E2A3A | Paragraphs and navigation   |
-| Heading   | #0B1F3A | Headings                    |
-
----
-
-# 24. Typography
-
-**Font:** Poppins
-
-Supported weights:
-
-**300–700**
-
-### Typography hierarchy
-
-* Hero H1: 48px, weight 700
-* Mobile Hero H1: 36px
-* Section H2: 36px, weight 700
-* CTA H2: 34px, weight 700
-* Card H3: 20px, weight 600
-* Statistics: 44px, weight 700
-* Body: 16–18px, weight 400
-* Navigation: 16px, weight 500
-* Logo: 24px, weight 700
-
----
-
-# 25. Landing Page Structure
-
-## Navigation
-
-Sticky navigation with:
+## Brand Name
 
 **MediCare+**
 
-Navigation links:
+## Product
 
-* Home
-* Services
-* About
-* Contact
+Digital healthcare and user well-being platform.
 
-Primary button:
+## Main Purpose
 
-**Book Appointment**
+MediCare+ connects patients and doctors while managing:
 
-The navbar should use a white semi-transparent background with backdrop blur.
-
----
-
-# 26. Hero Section
-
-Hero heading:
-
-**Your Health, Our Priority — Always**
-
-The word **Priority** should use the primary teal color.
-
-Supporting text should explain that MediCare+ helps patients organize healthcare information, manage appointments, and stay on schedule with prescribed medications.
-
-Primary buttons:
-
-**Get Started**
-
-**Our Services**
-
-The hero visual should contain a professional custom SVG medical illustration such as:
-
-* Stethoscope.
-* Medical cross.
-* ECG heartbeat.
-* Healthcare interface illustration.
-
-Two floating information cards:
-
-**Certified Doctors**
-
-**24/7 Support**
-
-All visual icons must be SVG-based.
+* Accounts
+* Appointments
+* Consultations
+* Digital prescriptions
+* Medication schedules
+* Medication reminders
+* Medical history
 
 ---
 
-# 27. Services Section
+# 3. TWO LOGIN SYSTEMS
 
-The services section should use four cards.
+MediCare+ MUST have two distinct login systems.
 
-### Telemedicine
+## Patient/User Login
 
-SVG icon: video camera / medical monitor with pulse line.
+Patients can:
 
-### Online Pharmacy
-
-SVG icon: medicine capsule or bottle.
-
-### Diagnostics
-
-SVG icon: DNA helix or laboratory flask.
-
-### Health Records
-
-SVG icon: clipboard/document.
-
-Each card should use:
-
-* White background.
-* Rounded corners.
-* Mint border.
-* Mint icon container.
-* Soft teal shadow.
-* Hover lift animation.
+* Register
+* Login
+* Verify email
+* Logout
+* Reset password
+* Manage profile
+* Find doctors
+* Book appointments
+* View appointments
+* Receive prescriptions
+* View prescriptions
+* Receive medication reminders
+* View medication schedules
+* Mark medication as taken
+* View their medical history
 
 ---
 
-# 28. Statistics Section
+# 4. DOCTOR LOGIN
 
-The landing page may display platform statistics such as:
+Doctors must have their own separate login experience.
 
-**500+ Certified Doctors**
+Doctors can:
 
-**50K+ Happy Patients**
+* Register/apply for a doctor account
+* Login
+* Logout
+* Manage their professional profile
+* View their appointments
+* Start consultations
+* Access authorized patient information
+* View patient medical history during the permitted appointment period
+* Record consultation information
+* Create digital prescriptions
+* Submit prescriptions
 
-**120+ Partner Clinics**
+A patient account must NEVER automatically become a doctor account simply by changing a role value from the frontend.
 
-**24/7 Medical Support**
-
-These numbers must represent genuine platform data before the website is publicly deployed. Placeholder statistics should not be presented as real-world facts.
-
----
-
-# 29. Call-to-Action Section
-
-The CTA should use a teal-to-blue gradient.
-
-Heading:
-
-**Take Control of Your Healthcare**
-
-Supporting text should encourage users to begin managing their healthcare digitally.
-
-Primary CTA:
-
-**Book Your Appointment**
-
-The coral color should be used only for this primary final CTA.
+Doctor accounts should have an appropriate verification process.
 
 ---
 
-# 30. Footer
+# 5. STRICT DOCTOR ACCESS TO PATIENT HISTORY
 
-The footer should use the ice-blue background.
+This is one of the most important MediCare+ rules.
 
-Four-column structure:
+A doctor must **NOT** have permanent access to a patient's medical history.
 
-1. MediCare+ brand information.
-2. Platform links.
-3. Services.
-4. Support / Contact.
+The doctor can access the patient's relevant history ONLY when:
 
-The footer should contain plain text links and a thin teal divider.
+1. The doctor is authenticated.
+2. The authenticated account is a doctor.
+3. The doctor owns the appointment.
+4. The appointment belongs to that patient.
+5. The appointment is valid.
+6. The current time is inside the authorized consultation window.
 
-No emojis or decorative Unicode symbols should be used.
+Example:
 
----
+```text
+Appointment:
+3:00 PM → 3:30 PM
 
-# 31. Responsive Design
+2:59 PM
+ACCESS DENIED
 
-The platform must work across:
+3:00 PM
+ACCESS GRANTED
 
-* Desktop.
-* Laptop.
-* Tablet.
-* Mobile.
+3:15 PM
+ACCESS GRANTED
 
-At widths of approximately 900px or below:
+3:30 PM
+ACCESS REVOKED
+```
 
-* Hero becomes single-column.
-* Hero heading becomes approximately 36px.
-* Hero visual reduces to approximately 320px.
-* Footer changes to two columns.
-* Desktop navigation links are hidden.
-* Mobile navigation uses a professional SVG hamburger icon.
+The backend must enforce this.
 
-The Unicode hamburger character **☰ must not be used**.
-
----
-
-# 32. Button System
-
-All buttons should use a rounded pill design.
-
-### Primary
-
-Background:
-
-**#0E9E8E**
-
-Text:
-
-**#FFFFFF**
-
-Hover:
-
-**#0B7E71**
-
-### Outline
-
-Background:
-
-Transparent
-
-Border:
-
-**2px #0E9E8E**
-
-Hover:
-
-Mint background
-
-### Final CTA
-
-Background:
-
-**#FF7A6E**
-
-Text:
-
-**#FFFFFF**
-
-All buttons should use approximately:
-
-**14px vertical / 32px horizontal padding**
-
-**50px border radius**
-
-**600 font weight**
-
-**0.3s transition**
+The frontend must never be trusted to enforce medical-data permissions.
 
 ---
 
-# 33. Animation Guidelines
+# 6. APPOINTMENT ACCESS WINDOW
 
-Animations should feel professional and calm.
+Each appointment must contain:
 
-Recommended animations include:
+```text
+appointment_id
+patient_id
+doctor_id
+appointment_date
+appointment_start
+appointment_end
+status
+```
 
-* Gentle hero illustration movement.
-* Floating statistic cards.
-* Card hover elevation.
-* Button hover movement.
-* Smooth section transitions.
-* Subtle navigation transitions.
+The backend compares the current server time with:
 
-Animations should never be excessive or distracting.
+```text
+appointment_start
+appointment_end
+```
 
-The website should respect the user's reduced-motion preference where supported.
+Before the appointment:
 
----
+> Patient information will become available when your consultation begins.
 
-# 34. Frontend Requirements
+During the appointment:
 
-The frontend should provide:
+> Patient information available.
 
-* Responsive UI.
-* Patient dashboard.
-* Doctor dashboard.
-* Admin dashboard.
-* Authentication pages.
-* Appointment interface.
-* Prescription interface.
-* Medication reminder interface.
-* Medical history interface.
-* Notification center.
-* Profile management.
-* Error and loading states.
-* Form validation.
+After the appointment:
 
-The frontend should communicate with the backend through secure API requests.
+> Your consultation access window has ended.
 
 ---
 
-# 35. Backend Requirements
+# 7. PATIENT BOOKS APPOINTMENT
 
-The backend is responsible for:
+Patient flow:
 
-* Authentication.
-* Authorization.
-* User management.
-* Doctor management.
-* Patient management.
-* Medical records.
-* Appointment scheduling.
-* Prescription processing.
-* Medication schedule generation.
-* Reminder scheduling.
-* Notification delivery.
-* Audit logging.
-* Data validation.
-* Security controls.
+```text
+Patient Login
+↓
+Find Doctor
+↓
+View Doctor Profile
+↓
+Choose Date
+↓
+Choose Available Time
+↓
+Enter Appointment Reason
+↓
+Confirm Booking
+↓
+Appointment Created
+```
 
-The backend must never rely solely on frontend validation for security.
+Prevent:
 
----
-
-# 36. Automated Prescription Processing
-
-The backend should automatically process newly created prescriptions.
-
-### Process
-
-**Prescription Created**
-
-→ Validate prescription
-
-→ Store prescription
-
-→ Extract medication information
-
-→ Generate medication schedule
-
-→ Create reminder jobs
-
-→ Schedule notifications
-
-→ Notify patient
-
-The system should also handle prescription updates and cancellations.
-
-If a doctor changes a prescription, the old reminder schedule should be appropriately updated or cancelled so that outdated medication reminders are not sent.
+* Past appointments
+* Invalid dates
+* Invalid times
+* Double booking
+* Missing information
+* Unauthorized appointment modification
 
 ---
 
-# 37. Error Handling
+# 8. DOCTOR CONSULTATION
 
-The system must safely handle errors.
+When the appointment begins:
+
+```text
+Doctor Login
+↓
+Doctor Dashboard
+↓
+Today's Appointment
+↓
+Start Consultation
+↓
+Backend Authorization
+↓
+Patient Information Available
+```
+
+The doctor can then view the permitted patient information.
+
+Consultation fields:
+
+* Symptoms
+* Chief complaint
+* Diagnosis
+* Doctor notes
+* Treatment plan
+* Follow-up instructions
+* Prescription
+
+---
+
+# 9. CONSULTATION ENDS
+
+When the consultation window ends:
+
+```text
+Consultation Window Ends
+↓
+Doctor Patient-History Access Revoked
+↓
+Consultation Record Remains Stored
+```
+
+The medical record remains part of the patient's history.
+
+The doctor must not gain permanent unrestricted access to the patient's complete history simply because they previously treated the patient.
+
+---
+
+# 10. DIGITAL PRESCRIPTION
+
+The doctor can create a digital prescription during the authorized consultation.
+
+Prescription fields:
+
+```text
+Medicine Name
+Dosage
+Frequency
+Duration
+Route
+Instructions
+Additional Notes
+```
+
+The doctor can:
+
+* Add medicine
+* Add multiple medicines
+* Edit medicine
+* Remove medicine
+* Add instructions
+* Review prescription
+* Issue prescription
+
+---
+
+# 11. AUTOMATIC PRESCRIPTION DELIVERY
+
+When the doctor presses:
+
+**Issue Prescription**
+
+the system automatically performs:
+
+```text
+Doctor Issues Prescription
+↓
+Backend Validates Prescription
+↓
+Prescription Saved
+↓
+Prescription Assigned to Patient
+↓
+Patient Account Updated
+↓
+Patient Notification Created
+↓
+Medication Schedule Generated
+↓
+Medication Timer Starts
+```
+
+The doctor does NOT need to manually send the prescription.
+
+---
+
+# 12. PATIENT RECEIVES PRESCRIPTION
+
+The prescription automatically appears inside the patient's account.
+
+Patient notification:
+
+> New prescription available.
+
+Patient can open:
+
+**Prescriptions → View Prescription**
+
+The system may also send an email notification.
+
+Do not place unnecessary sensitive medical information inside email notifications.
+
+---
+
+# 13. AUTOMATIC MEDICATION TIMER
+
+The medication timer must automatically start after the prescription is successfully issued and processed.
+
+Example prescription:
+
+```text
+Medicine:
+Example Medicine
+
+Dosage:
+500 mg
+
+Frequency:
+3 times daily
+
+Duration:
+5 days
+```
+
+The system automatically generates the medication schedule.
+
+Example:
+
+```text
+Day 1
+08:00 AM
+02:00 PM
+08:00 PM
+
+Day 2
+08:00 AM
+02:00 PM
+08:00 PM
+
+Day 3
+08:00 AM
+02:00 PM
+08:00 PM
+```
+
+Continue until the prescription duration ends.
+
+---
+
+# 14. MEDICATION TIMER UI
+
+The patient's dashboard should prominently display the next medication.
+
+Example:
+
+```text
+NEXT MEDICATION
+
+Example Medicine
+500 mg
+
+08:00 PM
+
+01:24:36
+
+[ Mark as Taken ]
+```
+
+The countdown must update dynamically.
+
+When the scheduled time arrives:
+
+```text
+MEDICATION DUE
+
+Example Medicine
+500 mg
+
+[Mark as Taken]
+```
+
+---
+
+# 15. MEDICATION STATUS
+
+Medication events should support:
+
+```text
+Scheduled
+Upcoming
+Due
+Taken
+Skipped
+Missed
+```
+
+When the patient selects:
+
+**Mark as Taken**
+
+save:
+
+```text
+status = taken
+taken_at = current timestamp
+```
+
+The medication history should update immediately.
+
+---
+
+# 16. MEDICATION REMINDERS
+
+When medication becomes due, the system can create:
+
+### In-app reminder
+
+> It is time for your scheduled medication.
+
+### Email reminder
+
+> You have a medication reminder waiting in your MediCare+ account.
+
+The email should direct the patient to the secure application rather than exposing unnecessary medical information.
+
+---
+
+# 17. MEDICAL HISTORY
+
+After the consultation:
+
+```text
+Consultation
+↓
+Consultation Record
+↓
+Prescription
+↓
+Medication Information
+↓
+Medical History Updated
+```
+
+The patient can view their history chronologically.
+
+Example:
+
+```text
+September 16, 2026
+
+Dr. Sarah Ahmed
+General Medicine
+
+Consultation
+Diagnosis
+Prescription
+Medication
+
+View Details
+```
+
+---
+
+# 18. PATIENT DASHBOARD
+
+The patient dashboard should contain:
+
+### Welcome
+
+```text
+Good morning, [Name]
+```
+
+### Upcoming Appointment
+
+* Doctor
+* Date
+* Time
+* Status
+
+### Next Medication
+
+* Medicine
+* Dosage
+* Countdown
+* Status
+* Mark as Taken
+
+### Latest Prescription
+
+* Doctor
+* Date
+* Prescription status
+* View prescription
+
+### Medical History
+
+Show recent records.
+
+### Notifications
+
+Show important account and healthcare updates.
+
+---
+
+# 19. DOCTOR DASHBOARD
+
+Doctor dashboard:
+
+### Today's Appointments
+
+Show:
+
+* Patient
+* Time
+* Appointment type
+* Status
+
+### Upcoming Appointments
+
+Show future appointments.
+
+### Active Consultation
+
+When the appointment is currently active:
+
+```text
+Patient Information
+Medical History
+Consultation
+Prescription
+```
+
+### Completed Consultations
+
+Show appropriate consultation records according to authorization rules.
+
+---
+
+# 20. DATABASE
+
+Use a structured database.
+
+## Users
+
+```text
+id
+name
+email
+password_hash
+role
+email_verified
+created_at
+updated_at
+```
+
+## Patient Profiles
+
+```text
+id
+user_id
+date_of_birth
+phone
+address
+emergency_contact
+```
+
+## Doctor Profiles
+
+```text
+id
+user_id
+specialization
+license_number
+bio
+verification_status
+availability
+```
+
+## Appointments
+
+```text
+id
+patient_id
+doctor_id
+appointment_date
+appointment_start
+appointment_end
+appointment_type
+reason
+status
+created_at
+updated_at
+```
+
+## Consultations
+
+```text
+id
+appointment_id
+patient_id
+doctor_id
+symptoms
+diagnosis
+notes
+follow_up
+created_at
+```
+
+## Prescriptions
+
+```text
+id
+consultation_id
+patient_id
+doctor_id
+created_at
+notes
+```
+
+## Prescription Medicines
+
+```text
+id
+prescription_id
+medicine_name
+dosage
+frequency
+duration
+route
+instructions
+```
+
+## Medication Schedules
+
+```text
+id
+patient_id
+prescription_medicine_id
+scheduled_date
+scheduled_time
+status
+taken_at
+```
+
+## Notifications
+
+```text
+id
+user_id
+type
+title
+message
+read
+created_at
+```
+
+---
+
+# 21. NODE.JS BACKEND
+
+Use:
+
+**Node.js + Express**
+
+with:
+
+```text
+server.js
+```
+
+as the main backend entry point.
+
+Architecture:
+
+```text
+Frontend
+↓
+server.js
+↓
+Express API
+↓
+Authentication
+↓
+Authorization
+↓
+Database
+```
+
+The backend handles:
+
+* Login
+* Registration
+* Email verification
+* Appointments
+* Doctor authorization
+* Consultations
+* Prescriptions
+* Medication schedules
+* Notifications
+* Medical history
+
+---
+
+# 22. EMAIL AUTHENTICATION
+
+Use email authentication through the Node.js backend.
+
+Support:
+
+* Registration
+* Login
+* Email verification
+* Password reset
+* Logout
+* Appointment emails
+* Prescription notifications
+* Medication reminders
+
+Passwords must be securely hashed.
+
+Never store plain-text passwords.
+
+Never expose email credentials in frontend code.
+
+---
+
+# 23. ENVIRONMENT VARIABLES
+
+Use:
+
+```text
+.env
+```
+
+Example:
+
+```text
+PORT=
+DATABASE_URL=
+SESSION_SECRET=
+JWT_SECRET=
+EMAIL_HOST=
+EMAIL_PORT=
+EMAIL_USER=
+EMAIL_PASSWORD=
+```
+
+Provide:
+
+```text
+.env.example
+```
+
+Never commit real credentials.
+
+---
+
+# 24. EMAIL SERVICE
+
+Use a backend email service.
+
+Example:
+
+```text
+services/emailService.js
+```
+
+Functions:
+
+```text
+sendVerificationEmail()
+sendPasswordResetEmail()
+sendAppointmentConfirmation()
+sendAppointmentReminder()
+sendPrescriptionNotification()
+sendMedicationReminder()
+```
+
+---
+
+# 25. REMINDER ENGINE
+
+Use a reliable backend scheduler/job system.
+
+Workflow:
+
+```text
+Prescription
+↓
+Medication Schedule
+↓
+Scheduled Job
+↓
+Check Due Medication
+↓
+Create Notification
+↓
+Send Email if configured
+↓
+Record Notification
+```
+
+Prevent duplicate reminders.
+
+The reminder system must survive server restarts appropriately.
+
+Do not rely only on a temporary browser timer for critical scheduling.
+
+---
+
+# 26. SECURITY
+
+Implement:
+
+* Secure authentication
+* Password hashing
+* Server-side authorization
+* Input validation
+* Rate limiting
+* Secure cookies/tokens
+* CORS configuration
+* CSRF protection where applicable
+* XSS protection
+* SQL injection protection
+* Environment variables
+* HTTPS in production
+* Audit logging
+
+Never expose:
+
+* Passwords
+* Password hashes
+* API keys
+* Database credentials
+* Sensitive server errors
+
+---
+
+# 27. MEDICAL DATA SECURITY
+
+Medical data is highly sensitive.
+
+Rules:
+
+* Patient can access their own medical history.
+* Doctor access must be appointment-based.
+* Doctor access must be time-limited.
+* Unauthorized users cannot access records.
+* Medical records must not be publicly accessible.
+* Do not expose medical information through unnecessary logs.
+* Do not expose medical information in frontend source code.
+
+---
+
+# 28. ROLE-BASED ACCESS
+
+## Patient
+
+Can access:
+
+* Own profile
+* Own appointments
+* Own prescriptions
+* Own medications
+* Own medical history
+
+## Doctor
+
+Can access:
+
+* Own profile
+* Own appointments
+* Authorized patient information during active appointment
+* Consultation
+* Prescription creation
+
+## Admin
+
+Can manage platform-level operations.
+
+Do not give unnecessary unrestricted access to patient medical information.
+
+---
+
+# 29. API
+
+Suggested API:
+
+```text
+POST /api/auth/patient/register
+POST /api/auth/patient/login
+
+POST /api/auth/doctor/login
+POST /api/auth/doctor/register
+
+POST /api/auth/logout
+POST /api/auth/verify-email
+POST /api/auth/reset-password
+
+GET /api/doctors
+GET /api/doctors/:id
+
+POST /api/appointments
+GET /api/appointments
+GET /api/appointments/:id
+PATCH /api/appointments/:id
+DELETE /api/appointments/:id
+
+GET /api/appointments/:id/access
+
+POST /api/consultations
+GET /api/consultations/:id
+
+POST /api/prescriptions
+GET /api/prescriptions
+GET /api/prescriptions/:id
+
+GET /api/medications
+GET /api/medications/upcoming
+POST /api/medications/:id/taken
+POST /api/medications/:id/skipped
+
+GET /api/medical-history
+
+GET /api/notifications
+PATCH /api/notifications/:id/read
+```
+
+Every private endpoint must verify authentication and authorization.
+
+---
+
+# 30. DOCTOR HISTORY API SECURITY
+
+Never make patient history available simply through:
+
+```text
+GET /api/patients/:id/history
+```
+
+without checking the appointment authorization.
+
+The backend must perform:
+
+```text
+Authenticated?
+↓
+Doctor?
+↓
+Correct doctor?
+↓
+Correct patient?
+↓
+Valid appointment?
+↓
+Appointment currently active?
+↓
+Authorization successful
+↓
+Return permitted history
+```
+
+Otherwise:
+
+```text
+403 Forbidden
+```
+
+---
+
+# 31. FRONTEND CSS / VISUAL SYSTEM
+
+Apply the **provided design reference to the CSS only**.
+
+Create a consistent design system for:
+
+* Buttons
+* Cards
+* Inputs
+* Selects
+* Forms
+* Tables
+* Modals
+* Alerts
+* Toasts
+* Navigation
+* Sidebar
+* Dashboard
+* Appointment cards
+* Prescription cards
+* Medication cards
+* Medical-history timeline
+* Doctor profiles
+* Login pages
+
+Do not invent a completely different visual language from the reference.
+
+The reference design should guide the visual appearance of every major component.
+
+---
+
+# 32. CSS QUALITY
+
+Write clean, maintainable CSS.
+
+Use:
+
+* CSS variables
+* Reusable component classes
+* Responsive breakpoints
+* Consistent spacing
+* Consistent typography
+* Reusable buttons
+* Reusable cards
+* Reusable form components
+
+Avoid:
+
+* Random inline styles
+* Duplicate CSS
+* Excessive `!important`
+* Unnecessary absolute positioning
+* Fixed widths that break mobile layouts
+
+---
+
+# 33. RESPONSIVE DESIGN
+
+The design must work on:
+
+```text
+320px
+375px
+768px
+1024px
+1440px+
+```
+
+Support:
+
+* Desktop
+* Laptop
+* Tablet
+* Mobile
+
+No horizontal scrolling.
+
+Maintain the visual style of the design reference across all screen sizes.
+
+---
+
+# 34. ACCESSIBILITY
+
+Include:
+
+* Semantic HTML
+* Proper labels
+* Keyboard navigation
+* Visible focus states
+* Accessible contrast
+* Screen-reader-friendly controls
+* Touch-friendly buttons
+* Reduced-motion support
+
+Do not communicate important information using color alone.
+
+---
+
+# 35. ANIMATIONS
+
+Animations should follow the visual language of the design reference.
+
+Use animations for:
+
+* Page transitions
+* Button interaction
+* Cards
+* Notifications
+* Modals
+* Loading states
+* Medication timer updates
+
+Keep animations smooth and professional.
+
+Do not add excessive animations that interfere with healthcare usability.
+
+---
+
+# 36. LOADING STATES
+
+Every asynchronous operation should have proper feedback.
 
 Examples:
 
-* Invalid prescription information.
-* Missing medication schedule.
-* Duplicate medication schedule.
-* Appointment conflicts.
-* Failed notification.
-* Unauthorized medical-record access.
-* Expired consultation access.
-* Invalid account credentials.
-* Backend service failure.
+```text
+Loading appointments...
+Loading prescription...
+Loading medical history...
+Creating prescription...
+Booking appointment...
+```
 
-Errors should be logged appropriately while avoiding exposure of sensitive information.
+Use skeletons/spinners where appropriate.
 
 ---
 
-# 38. Performance Requirements
+# 37. ERROR STATES
 
-MediCare+ should aim for:
+Create clear user-friendly errors.
 
-* Fast page loading.
-* Responsive dashboard interactions.
-* Efficient database queries.
-* Reliable reminder scheduling.
-* Reliable notification processing.
-* Scalable backend architecture.
-* Efficient API communication.
+Examples:
 
-The reminder system should be designed so that a large number of patients and prescriptions can be processed without causing significant delays.
+> Unable to book this appointment. Please select another available time.
 
----
+> Your consultation access window has ended.
 
-# 39. Reliability Requirements
+> We couldn't load your medical history. Please try again.
 
-Medication reminder generation is a critical feature.
+> Your prescription could not be issued. Please try again.
 
-The system should minimize:
-
-* Duplicate reminders.
-* Missing reminders.
-* Incorrect schedules.
-* Expired reminders continuing unnecessarily.
-* Outdated prescriptions being used.
-
-The backend should maintain appropriate logs and system monitoring so failures can be identified.
+Never display raw database or server errors.
 
 ---
 
-# 40. Healthcare Safety Principle
+# 38. LANDING PAGE
 
-MediCare+ is a **healthcare management platform**, not an autonomous medical decision-maker.
+Create a polished MediCare+ landing page.
 
-The platform should not independently:
+Main message:
 
-* Diagnose a patient.
-* Change medication dosage.
-* Change a doctor's prescription.
-* Recommend stopping prescribed medication.
-* Invent medication schedules.
-* Override professional medical instructions.
+**Healthcare, organized around you.**
 
-The system's role is to accurately **store, organize, schedule, and communicate authorized healthcare information**.
+Explain that MediCare+ connects:
 
----
+**Appointments → Consultations → Prescriptions → Medication Reminders → Medical History**
 
-# 41. Scalability & Future Development
+Include:
 
-Future versions may include:
+* Hero
+* Features
+* How It Works
+* Patient Experience
+* Doctor Experience
+* Security
+* Call to Action
 
-* Mobile applications.
-* Hospital integration.
-* Pharmacy integration.
-* Laboratory integration.
-* Electronic health reports.
-* Video consultations.
-* Family healthcare accounts.
-* Emergency healthcare information.
-* Wearable integration.
-* Advanced medication adherence reports.
-* Multi-language support.
-* Healthcare provider networks.
-* Secure document storage.
-
-Any future feature that makes medical decisions should undergo appropriate medical, legal, security, and compliance review.
+The visual design must follow the provided CSS/design reference.
 
 ---
 
-# 42. Project Success Criteria
+# 39. HOW IT WORKS
 
-MediCare+ will be considered functionally successful when:
+Show the core workflow visually:
 
-1. Patients can securely create and access their accounts.
-2. Doctors can securely access their authorized dashboard.
-3. Patients can schedule appointments.
-4. Doctors can manage appointments.
-5. Doctors can create digital prescriptions.
-6. Prescriptions are securely stored.
-7. Medication schedules are automatically generated correctly.
-8. Patients receive medication reminders at the appropriate times.
-9. Expired prescriptions automatically stop generating reminders.
-10. Unauthorized users cannot access protected medical records.
-11. Doctor medical-history access is properly controlled and logged.
-12. The platform works responsively across desktop and mobile devices.
-13. The public landing page maintains the specified MediCare+ visual identity.
-14. No emojis are used anywhere in the website interface.
-15. All important backend operations are properly validated and logged.
+```text
+01
+Book Appointment
+↓
+02
+Doctor Consultation
+↓
+03
+Digital Prescription
+↓
+04
+Automatic Medication Timer
+↓
+05
+Medical History Updated
+```
+
+Do not alter this workflow.
 
 ---
 
-# 43. Final Product Concept
+# 40. FINAL COMPLETE WORKFLOW
 
-MediCare+ should function as more than a traditional healthcare website.
+The final application must work like this:
 
-It should operate as a connected healthcare management ecosystem:
-
-**Patient**
-
+```text
+PATIENT
 ↓
-
-**Appointment**
-
+Patient Login
 ↓
-
-**Doctor Consultation**
-
+Find Doctor
 ↓
-
-**Authorized Medical History**
-
+Book Appointment
 ↓
-
-**Digital Prescription**
-
+Appointment Confirmed
 ↓
-
-**Automatic Prescription Processing**
-
+DOCTOR
 ↓
-
-**Medication Schedule**
-
+Doctor Login
 ↓
-
-**Automated Reminder**
-
+Appointment Starts
 ↓
-
-**Medication Tracking**
-
+Backend Verifies Appointment
 ↓
-
-**Updated Healthcare History**
-
-This connected workflow is the core identity of MediCare+.
+Doctor Gets Temporary Patient-History Access
+↓
+Consultation
+↓
+Doctor Creates Prescription
+↓
+Doctor Issues Prescription
+↓
+Prescription Automatically Sent to Patient
+↓
+Medication Schedule Automatically Generated
+↓
+Medication Timer Starts
+↓
+Patient Receives Reminder
+↓
+Patient Takes Medicine
+↓
+Patient Marks "Taken"
+↓
+Medication Record Updated
+↓
+Consultation Record Stored
+↓
+Medical History Updated
+↓
+Appointment Access Window Ends
+↓
+Doctor's Temporary Patient-History Access Revoked
+```
 
 ---
 
-# 44. Official Product Statement
+# 41. MOST IMPORTANT REQUIREMENTS
 
-**MediCare+ is a modern digital healthcare management platform designed to simplify the way patients and healthcare providers manage appointments, medical histories, prescriptions, and medication schedules. By connecting digital prescriptions with automated medication reminders, MediCare+ reduces repetitive manual tasks and helps patients stay organized with their prescribed treatment schedules. Through secure authentication, controlled medical-record access, appointment management, and automated backend services, the platform aims to provide a trustworthy, calm, and efficient digital healthcare experience.**
+### DO NOT CHANGE THESE:
 
-### MediCare+
+**1. Two login systems**
 
-**Your Health. Your History. Your Care — Simplified.**
+Patient/User Login + Doctor Login.
+
+**2. Temporary doctor access**
+
+Doctor can only access the patient's permitted history during the booked appointment time.
+
+**3. Server-side authorization**
+
+The time restriction must be enforced by Node.js/backend.
+
+**4. Automatic prescription delivery**
+
+Doctor issues prescription → patient automatically receives it.
+
+**5. Automatic medication schedule**
+
+Prescription → medication schedule.
+
+**6. Automatic medication timer**
+
+Medication schedule → timer/reminder automatically starts.
+
+**7. Medical history**
+
+Consultation + prescription + medication information becomes part of the patient's medical history.
+
+**8. CSS reference**
+
+The provided design reference controls the **visual/CSS design only**.
+
+It must NOT alter the MediCare+ functionality.
+
+---
+
+# 42. FINAL DEVELOPMENT GOAL
+
+Build MediCare+ as a complete, connected, professional full-stack healthcare platform.
+
+It should NOT be a collection of static pages.
+
+The frontend, backend, database, authentication, appointments, temporary doctor authorization, consultation, prescriptions, medication timers, notifications, and medical history must work together.
+
+The final product should feel like one unified system:
+
+**MediCare+**
+
+**Patient → Appointment → Doctor Consultation → Prescription → Automatic Medication Timer → Medical History**
+
+while maintaining strict privacy and time-limited doctor access.
+
+## PRIORITY ORDER
+
+When making development decisions, prioritize:
+
+**Security → Privacy → Correct Functionality → Reliability → Usability → Accessibility → Performance → Visual Polish**
+
+And when implementing the UI:
+
+**Use the provided design reference for CSS/visual styling ONLY.**
