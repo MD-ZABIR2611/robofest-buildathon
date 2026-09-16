@@ -1,1051 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#FFFFFF">
-<meta name="description" content="MediCare+ — digital healthcare management: appointments, medical history, digital prescriptions and automated medication reminders.">
-<meta name="robots" content="index, follow">
-
-<!-- Open Graph / social preview (logo reused automatically) -->
-<meta property="og:type" content="website">
-<meta property="og:title" content="MediCare+ — Your Health, Our Priority — Always">
-<meta property="og:description" content="Appointments, medical history, digital prescriptions and automated medication reminders — in one secure platform.">
-<meta property="og:image" content="assets/logo.png">
-<meta property="og:image:alt" content="MediCare+ logo">
-<meta name="twitter:card" content="summary">
-
-<title>MediCare+ — Your Health, Our Priority — Always</title>
-
-<!-- =====================================================================
-     LOGO / BRAND ASSET
-     Drop your logo file at:  assets/logo.png
-     It is used for: navbar, footer, favicon, apple-touch-icon, social card.
-     Prefer SVG? Just change the path below, e.g. assets/logo.svg
-     If the file is missing, a built-in fallback mark is shown automatically.
-====================================================================== -->
-<link rel="icon" type="image/png" href="assets/logo.png">
-<link rel="apple-touch-icon" href="assets/logo.png">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-<script>
-/* =====================================================================
-   MEDIACARE+ RUNTIME CONFIG
-   - API_BASE_URL : point this at your backend when it goes live.
-   - APP_VERSION  : shown in the footer; bump on each release.
-   - APPOINTMENT_URL : where every "Book Appointment" link points.
-     The appointment flow will live on its own page/site — update
-     this once value and all links follow (nav, hero, CTA, footer).
-===================================================================== */
-window.MEDICARE = {
-  API_BASE_URL: '/api/v1',
-  APPOINTMENT_URL: 'appointment.html',
-  APP_VERSION: '1.0.0'
-};
-
-/* Logo fallback: built-in replica of the MediCare+ mark.
-   Used automatically if assets/logo.png is not present. */
-window.LOGO_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">' +
-  '<rect width="40" height="40" rx="11" fill="#0E9E8E"/>' +
-  '<path d="M6.5 21.5h6.3l2.7-6.3 4.7 10.8 2.6-5h10.2" fill="none" stroke="#FFFFFF" ' +
-  'stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-);
-
-/* If the logo file is missing, fall back for the favicon too. */
-(function(){
-  var probe = new Image();
-  probe.onerror = function(){
-    var link = document.querySelector('link[rel="icon"]');
-    if (link) link.href = window.LOGO_FALLBACK;
-  };
-  probe.src = 'assets/logo.png';
-})();
-</script>
-
-<style>
-/* ============ Tokens ============ */
-:root{
-  --white:#FFFFFF;
-  --ice:#F4F9FC;
-  --teal:#0E9E8E;
-  --teal-dark:#0B7E71;
-  --blue:#2D6CDF;
-  --mint:#B8F0E4;
-  --coral:#FF7A6E;
-  --body:#1E2A3A;
-  --heading:#0B1F3A;
-}
-
-/* ============ Base ============ */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;scroll-padding-top:96px}
-body{font-family:'Poppins',sans-serif;font-size:16px;line-height:1.6;color:var(--body);background:var(--white);-webkit-font-smoothing:antialiased}
-a{text-decoration:none;color:inherit}
-button{font-family:inherit;cursor:pointer}
-ul{list-style:none}
-::selection{background:var(--mint);color:var(--teal-dark)}
-:focus-visible{outline:3px solid rgba(14,158,142,.4);outline-offset:2px;border-radius:6px}
-
-.container{max-width:1160px;margin:0 auto;padding:0 24px}
-.section{padding:100px 0}
-.section-ice{background:var(--ice)}
-
-.skip{position:absolute;left:-9999px;top:0;background:var(--teal);color:#fff;padding:10px 20px;border-radius:0 0 12px 0;z-index:999}
-.skip:focus{left:0}
-
-/* Icon system — thin line SVG, teal/blue only */
-.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.ic-13{width:13px;height:13px}
-.ic-14{width:14px;height:14px}
-.ic-16{width:16px;height:16px}
-.sprite{position:absolute;width:0;height:0;overflow:hidden}
-
-/* ============ Logo (image-based — swap the file, not the code) ============ */
-.logo-img{width:36px;height:36px;flex:none;border-radius:11px;display:block;object-fit:contain}
-.logo{display:inline-flex;align-items:center;gap:10px;font-size:24px;font-weight:700;letter-spacing:-.3px;color:var(--heading)}
-.logo .plus{color:var(--teal)}
-
-/* ============ Buttons ============ */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 32px;border-radius:50px;font-weight:600;font-size:16px;line-height:1.2;border:2px solid transparent;transition:all .3s ease;white-space:nowrap}
-.btn-primary{background:var(--teal);color:#fff}
-.btn-primary:hover{background:var(--teal-dark);transform:translateY(-2px);box-shadow:0 14px 28px -10px rgba(14,158,142,.45)}
-.btn-outline{background:transparent;border-color:var(--teal);color:var(--teal)}
-.btn-outline:hover{background:var(--mint);border-color:var(--mint);color:var(--teal-dark);transform:translateY(-2px)}
-.btn-coral{background:var(--coral);color:#fff}
-.btn-coral:hover{background:#F2685C;transform:translateY(-2px);box-shadow:0 14px 28px -10px rgba(255,122,110,.5)}
-.btn-nav{padding:11px 26px;font-size:15px}
-
-/* ============ Section heads ============ */
-.sec-head{max-width:660px;margin-bottom:56px}
-.sec-head.center{margin-left:auto;margin-right:auto;text-align:center}
-.overline{display:inline-flex;align-items:center;gap:10px;font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:14px}
-.overline::before{content:'';width:28px;height:2px;background:var(--teal);border-radius:2px}
-.sec-head.center .overline::after{content:'';width:28px;height:2px;background:var(--teal);border-radius:2px}
-h1,h2,h3{color:var(--heading)}
-h2{font-size:36px;font-weight:700;letter-spacing:-.6px;line-height:1.22}
-.lede{font-size:17px;line-height:1.75;color:rgba(30,42,58,.72);margin-top:14px}
-
-/* Reveal on scroll */
-[data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
-[data-reveal].revealed{opacity:1;transform:none}
-
-/* ============ Navigation ============ */
-.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:box-shadow .3s,background .3s}
-.nav.scrolled{background:rgba(255,255,255,.92);box-shadow:0 8px 30px -14px rgba(11,31,58,.16)}
-.nav-inner{height:76px;display:flex;align-items:center;justify-content:space-between;gap:24px}
-.nav-links{display:flex;gap:36px}
-.nav-links a{position:relative;font-size:16px;font-weight:500;color:var(--body);transition:color .25s}
-.nav-links a::after{content:'';position:absolute;left:0;bottom:-7px;width:100%;height:2px;background:var(--teal);border-radius:2px;transform:scaleX(0);transform-origin:left;transition:transform .3s ease}
-.nav-links a:hover{color:var(--teal-dark)}
-.nav-links a:hover::after{transform:scaleX(1)}
-.nav-toggle{display:none;background:none;border:none;color:var(--heading);padding:8px}
-.nav-toggle .i-close{display:none}
-.nav-toggle.active .i-menu{display:none}
-.nav-toggle.active .i-close{display:block}
-
-.mobile-menu{position:fixed;top:76px;left:0;right:0;z-index:99;display:none;background:rgba(255,255,255,.97);backdrop-filter:blur(16px);border-bottom:1px solid rgba(11,31,58,.08);padding:8px 24px 24px;transform:translateY(-12px);opacity:0;pointer-events:none;transition:all .3s ease}
-.mobile-menu.open{transform:none;opacity:1;pointer-events:auto}
-.mobile-menu a:not(.btn){display:block;padding:15px 4px;font-size:16px;font-weight:500;border-bottom:1px solid rgba(11,31,58,.06)}
-.mobile-menu .btn{width:100%;margin-top:18px}
-
-/* ============ Hero ============ */
-.hero{position:relative;padding:172px 0 112px;overflow:hidden}
-.hero .container{position:relative;display:grid;grid-template-columns:1.02fr .98fr;gap:56px;align-items:center}
-.deco-plus{position:absolute;color:var(--teal);opacity:.16;pointer-events:none}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(184,240,228,.45);border:1px solid var(--mint);color:var(--teal-dark);font-size:13px;font-weight:600;padding:8px 16px;border-radius:50px;margin-bottom:24px}
-.hero h1{font-size:48px;font-weight:700;letter-spacing:-1.2px;line-height:1.14;max-width:560px;margin-bottom:20px}
-.hero h1 .hl{color:var(--teal)}
-.hero-sub{font-size:17.5px;line-height:1.75;color:rgba(30,42,58,.72);max-width:520px;margin-bottom:34px}
-.hero-actions{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:38px}
-.hero-trust{display:flex;gap:24px;flex-wrap:wrap}
-.hero-trust span{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500;color:rgba(30,42,58,.65)}
-.hero-trust .ic{color:var(--teal)}
-
-/* Hero visual */
-.hero-visual{position:relative;display:flex;justify-content:center}
-.hv-blob{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:440px;height:440px;border-radius:50%;background:rgba(184,240,228,.42)}
-.hv-blob2{position:absolute;top:3%;left:4%;width:64px;height:64px;border-radius:50%;background:rgba(45,108,223,.1)}
-.hv-ring{position:absolute;top:50%;left:50%;width:530px;height:530px;transform:translate(-50%,-50%);animation:spin 80s linear infinite}
-.hv-card{position:relative;z-index:2;width:min(430px,100%);background:#fff;border:1px solid rgba(11,31,58,.06);border-radius:24px;box-shadow:0 34px 70px -28px rgba(11,31,58,.3);padding:22px}
-.hv-head{display:flex;align-items:center;gap:12px;padding-bottom:16px;border-bottom:1px solid rgba(11,31,58,.07)}
-.avatar{width:42px;height:42px;border-radius:50%;background:var(--mint);color:var(--teal-dark);font-weight:600;font-size:14px;display:grid;place-items:center;flex:none}
-.hv-id strong{display:block;font-size:15px;color:var(--heading)}
-.hv-id span{font-size:12px;color:rgba(30,42,58,.5)}
-.hv-status{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--teal-dark);background:rgba(184,240,228,.5);padding:5px 11px;border-radius:50px}
-.hv-status i{width:6px;height:6px;border-radius:50%;background:var(--teal)}
-.ecg-box{margin:16px 0;background:var(--ice);border-radius:14px;padding:10px 14px 6px}
-.ecg-meta{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(30,42,58,.5);margin-bottom:2px}
-.ecg-meta .ic{color:var(--teal)}
-.ecg{width:100%;height:64px;display:block}
-.ecg-base{stroke:rgba(14,158,142,.14);stroke-width:2;fill:none}
-.ecg-draw{stroke:var(--teal);stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:600;stroke-dashoffset:600;animation:ecgdraw 4.4s linear infinite}
-@keyframes ecgdraw{to{stroke-dashoffset:-600}}
-.hv-medhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.hv-label{font-size:14px;font-weight:600;color:var(--heading)}
-.donut-wrap{position:relative;width:46px;height:46px}
-.donut{width:46px;height:46px;transform:rotate(-90deg)}
-.donut circle{fill:none;stroke-width:5}
-.donut .bg{stroke:var(--mint)}
-.donut .fg{stroke:var(--teal);stroke-linecap:round;transition:stroke-dashoffset .6s ease}
-.donut-label{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--heading)}
-.dose{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:none;padding:12px 10px;border-radius:14px;transition:background .25s}
-.dose:hover{background:var(--ice)}
-.dose + .dose{border-top:1px solid rgba(11,31,58,.06)}
-.dose-time{width:52px;flex:none;font-size:13.5px;font-weight:600;color:var(--heading)}
-.dose-info{flex:1;min-width:0}
-.dose-info strong{display:block;font-size:14px;color:var(--heading)}
-.dose-info em{font-style:normal;font-size:12.5px;color:rgba(30,42,58,.55)}
-.dose[data-state="taken"] .dose-info{opacity:.65}
-.dose-status{display:inline-flex;align-items:center;gap:6px;flex:none;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:50px;white-space:nowrap}
-.dose-status.taken{background:var(--mint);color:var(--teal-dark)}
-.dose-status.due{background:var(--teal);color:#fff}
-.dose-status.upcoming{border:1.5px solid rgba(11,31,58,.15);color:rgba(30,42,58,.6)}
-.dose-status .dot{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 1.5s ease infinite}
-.hv-hint{margin-top:12px;font-size:11.5px;color:rgba(30,42,58,.45);text-align:center}
-
-.float-card{position:absolute;z-index:3;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid rgba(11,31,58,.06);border-radius:18px;padding:14px 16px;box-shadow:0 18px 44px -16px rgba(11,31,58,.22)}
-.fc-icon{width:42px;height:42px;border-radius:12px;background:var(--mint);color:var(--teal-dark);display:grid;place-items:center;flex:none}
-.fc-text strong{display:block;font-size:14px;color:var(--heading)}
-.fc-text span{font-size:12.5px;color:rgba(30,42,58,.55)}
-.fc-doctors{top:5%;right:-30px;animation:floaty 6s ease-in-out infinite}
-.fc-support{bottom:7%;left:-34px;animation:floaty 7s ease-in-out 1.2s infinite}
-.stack{display:flex;margin-left:2px}
-.stack i{width:26px;height:26px;border-radius:50%;border:2px solid #fff;margin-left:-8px;font-style:normal;font-size:9.5px;font-weight:600;color:#fff;display:grid;place-items:center}
-.stack i:first-child{margin-left:0}
-.stack i:nth-child(1){background:var(--teal)}
-.stack i:nth-child(2){background:var(--blue)}
-.stack i:nth-child(3){background:var(--heading)}
-
-@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-
-/* ============ Services ============ */
-.services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
-.service-card{position:relative;display:flex;flex-direction:column;background:#fff;border:1px solid var(--mint);border-radius:20px;padding:28px 24px;overflow:hidden;transition:transform .35s ease,box-shadow .35s ease}
-.service-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--teal);transform:scaleX(0);transform-origin:left;transition:transform .45s ease}
-.service-card:hover{transform:translateY(-8px);box-shadow:0 26px 50px -18px rgba(14,158,142,.24)}
-.service-card:hover::before{transform:scaleX(1)}
-.sc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
-.sc-icon{width:52px;height:52px;border-radius:14px;background:var(--mint);color:var(--teal-dark);display:grid;place-items:center}
-.sc-num{font-size:14px;font-weight:600;letter-spacing:.06em;color:rgba(11,31,58,.16)}
-.service-card h3{font-size:20px;font-weight:600;margin-bottom:10px}
-.service-card > p{font-size:14.5px;line-height:1.65;color:rgba(30,42,58,.72)}
-.sc-more{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s ease}
-.sc-more > div{overflow:hidden;min-height:0}
-.service-card.open .sc-more{grid-template-rows:1fr}
-.sc-more ul{padding-top:16px;display:flex;flex-direction:column;gap:9px}
-.sc-more li{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;line-height:1.5;color:rgba(30,42,58,.75)}
-.sc-more li .ic{flex:none;margin-top:3px;color:var(--teal)}
-.sc-link{display:inline-flex;align-items:center;gap:8px;margin-top:18px;background:none;border:none;padding:0;font-size:14px;font-weight:600;color:var(--teal);transition:gap .25s,color .25s;align-self:flex-start}
-.sc-link:hover{gap:13px;color:var(--teal-dark)}
-@media (min-width:961px){.services-grid > :nth-child(even){margin-top:32px}}
-
-/* ============ Workflow (About) ============ */
-.flow-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:72px;align-items:start}
-.flow-intro{position:sticky;top:110px}
-.role-legend{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap}
-.tag{font-size:12px;font-weight:600;padding:5px 13px;border-radius:50px}
-.tag-patient{background:var(--mint);color:var(--teal-dark)}
-.tag-doctor{background:#DCE7FB;color:#2456B8}
-.tag-system{background:rgba(11,31,58,.08);color:#44536B}
-.safety-note{display:flex;gap:14px;margin-top:26px;background:rgba(184,240,228,.38);border:1px solid var(--mint);border-radius:16px;padding:18px 20px}
-.safety-note .ic{flex:none;margin-top:3px;color:var(--teal-dark)}
-.safety-note p{font-size:14px;line-height:1.65;color:rgba(11,126,113,.95)}
-.flow{position:relative}
-.flow::before{content:'';position:absolute;left:31px;top:32px;bottom:32px;width:2px;background:rgba(14,158,142,.15);border-radius:2px}
-.flow-fill{position:absolute;left:31px;top:32px;width:2px;height:0;background:var(--teal);border-radius:2px;z-index:1}
-.flow-step{position:relative;display:flex;gap:24px;padding-bottom:44px}
-.flow-step:last-child{padding-bottom:0}
-.flow-node{flex:none;width:64px;height:64px;border-radius:50%;background:#fff;border:2px solid var(--mint);color:var(--teal);display:grid;place-items:center;transition:background .45s,border-color .45s,color .45s,box-shadow .45s;z-index:2}
-.flow-node .ic{width:26px;height:26px}
-.flow-step.active .flow-node{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 12px 26px -8px rgba(14,158,142,.5)}
-.flow-meta{display:flex;align-items:center;gap:12px;margin-bottom:9px}
-.flow-kicker{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(30,42,58,.38)}
-.flow-body h3{font-size:19px;font-weight:600;margin-bottom:8px}
-.flow-body p{font-size:15px;line-height:1.7;color:rgba(30,42,58,.72);max-width:480px}
-
-/* ============ Statistics ============ */
-.stats-section{border-bottom:1px solid rgba(11,31,58,.06)}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);margin-top:48px}
-.stat{text-align:center;padding:8px 20px}
-.stat + .stat{border-left:1px solid rgba(11,31,58,.1)}
-.stat-num{display:flex;justify-content:center;align-items:baseline;gap:2px;font-size:44px;font-weight:700;letter-spacing:-1px;color:var(--heading)}
-.stat-num span{color:var(--teal)}
-.stat-label{margin-top:6px;font-size:14.5px;font-weight:500;color:rgba(30,42,58,.65)}
-.stats-note{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:40px;font-size:12.5px;color:rgba(30,42,58,.45)}
-
-/* ============ Trust + CTA ============ */
-.cta-wrap{padding:100px 0 110px}
-.trust-overline{display:flex;justify-content:center;margin-bottom:34px}
-.trust-row{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin-bottom:64px}
-.trust-item{display:flex;gap:14px;align-items:flex-start}
-.trust-item strong{display:block;font-size:15px;font-weight:600;color:var(--heading);margin-bottom:3px}
-.trust-item span{font-size:13px;line-height:1.55;color:rgba(30,42,58,.62)}
-.cta-panel{position:relative;overflow:hidden;background:linear-gradient(118deg,var(--teal) 0%,var(--blue) 100%);border-radius:28px;padding:78px 40px;text-align:center;color:#fff}
-.cta-panel h2{color:#fff;font-size:34px;margin-bottom:16px}
-.cta-panel p{max-width:560px;margin:0 auto 34px;font-size:17px;line-height:1.7;color:rgba(255,255,255,.88)}
-.cta-panel .btn{position:relative;z-index:1}
-.cta-ecg{position:absolute;left:0;right:0;bottom:-8px;width:100%;height:120px}
-.cta-ecg path{stroke:rgba(255,255,255,.2);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:600;stroke-dashoffset:600;animation:ecgdraw 9s linear infinite}
-
-/* ============ Footer ============ */
-.footer{background:var(--ice);padding:76px 0 32px}
-.footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1.3fr;gap:48px}
-.footer-brand p{margin-top:18px;font-size:14px;line-height:1.7;color:rgba(30,42,58,.65);max-width:310px}
-.footer-brand small{display:block;margin-top:16px;font-size:12.5px;color:rgba(30,42,58,.45)}
-.footer .logo-img{width:34px;height:34px;border-radius:10px}
-.footer h4{font-size:15px;font-weight:600;color:var(--heading);margin-bottom:18px}
-.footer-col ul{display:flex;flex-direction:column;gap:12px}
-.footer-col a:not(.contact-li){font-size:14.5px;color:rgba(30,42,58,.68);transition:color .25s}
-.footer-col a:hover{color:var(--teal-dark)}
-.contact-li{display:flex;align-items:center;gap:10px;font-size:14.5px;color:rgba(30,42,58,.68);transition:color .25s}
-.contact-li .ic{color:var(--teal);flex:none}
-.footer-divider{border:none;border-top:1px solid rgba(14,158,142,.35);margin:46px 0 24px}
-.footer-bottom{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;font-size:13.5px;color:rgba(30,42,58,.55)}
-.footer-bottom nav{display:flex;gap:22px}
-.footer-bottom nav a{color:rgba(30,42,58,.55);transition:color .25s}
-.footer-bottom nav a:hover{color:var(--teal-dark)}
-.sys-status{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--teal-dark);background:rgba(184,240,228,.45);padding:6px 13px;border-radius:50px}
-.sys-status i{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 2s ease infinite}
-.sys-ver{font-size:12px;color:rgba(30,42,58,.4);font-weight:500}
-
-/* ============ Toasts ============ */
-.toasts{position:fixed;right:24px;bottom:24px;z-index:300;display:flex;flex-direction:column;gap:12px}
-.toast{display:flex;align-items:flex-start;gap:12px;min-width:300px;max-width:370px;background:#fff;border:1px solid rgba(11,31,58,.08);border-left:3px solid var(--teal);border-radius:14px;padding:14px 16px;box-shadow:0 18px 44px -14px rgba(11,31,58,.24);animation:toastIn .35s cubic-bezier(.21,1.02,.55,1) both}
-.toast.out{animation:toastOut .3s ease both}
-.t-icon{width:34px;height:34px;border-radius:10px;background:var(--mint);color:var(--teal-dark);display:grid;place-items:center;flex:none}
-.t-body{flex:1;min-width:0}
-.t-head{display:flex;align-items:baseline;gap:8px}
-.t-head strong{font-size:14px;color:var(--heading)}
-.t-time{margin-left:auto;font-size:11px;font-weight:500;color:rgba(30,42,58,.4)}
-.t-body > span{display:block;font-size:13px;line-height:1.5;color:rgba(30,42,58,.7);margin-top:2px}
-.t-close{background:none;border:none;color:rgba(30,42,58,.4);padding:2px;transition:color .25s}
-.t-close:hover{color:var(--heading)}
-.toast.info{border-left-color:#8A97AC}
-.toast.info .t-icon{background:#E8EDF5;color:#44536B}
-@keyframes toastIn{from{opacity:0;transform:translateX(26px)}}
-@keyframes toastOut{to{opacity:0;transform:translateX(26px)}}
-
-/* ============ Responsive ============ */
-@media (max-width:1024px){
-  .hero .container{gap:40px}
-  .flow-grid{gap:48px}
-}
-@media (max-width:900px){
-  .nav-links,.nav .nav-cta{display:none}
-  .nav-toggle{display:grid}
-  .mobile-menu{display:block}
-  .hero{padding:128px 0 84px}
-  .hero .container{grid-template-columns:1fr;gap:64px;text-align:center}
-  .hero h1{font-size:36px;margin-inline:auto}
-  .hero-sub{margin-inline:auto}
-  .hero-actions,.hero-trust{justify-content:center}
-  .hero-visual{width:100%;max-width:380px;margin:0 auto}
-  .hv-blob{width:330px;height:330px}
-  .hv-ring{width:400px;height:400px}
-  .fc-doctors{right:-8px}
-  .fc-support{left:-8px}
-  .services-grid{grid-template-columns:repeat(2,1fr)}
-  .flow-grid{grid-template-columns:1fr}
-  .flow-intro{position:static}
-  .stats-row{grid-template-columns:repeat(2,1fr);row-gap:44px}
-  .stat + .stat{border-left:none}
-  .stat:nth-child(even){border-left:1px solid rgba(11,31,58,.1)}
-  .trust-row{grid-template-columns:repeat(2,1fr);gap:24px}
-  .footer-grid{grid-template-columns:repeat(2,1fr)}
-}
-@media (max-width:640px){
-  .section{padding:76px 0}
-  h2{font-size:30px}
-  .cta-panel{padding:58px 24px}
-  .cta-panel h2{font-size:28px}
-}
-@media (max-width:560px){
-  .hero h1{font-size:34px}
-  .hero-visual{max-width:325px}
-  .hv-card{padding:16px}
-  .float-card{padding:10px 12px;border-radius:14px}
-  .fc-icon{width:32px;height:32px;border-radius:10px}
-  .fc-text strong{font-size:12.5px}
-  .fc-text span{font-size:11px}
-  .services-grid{grid-template-columns:1fr}
-  .stat-num{font-size:36px}
-  .stat{padding:8px 6px}
-  .trust-row{grid-template-columns:1fr}
-  .footer-grid{grid-template-columns:1fr;gap:38px}
-  .toasts{left:16px;right:16px}
-  .toast{min-width:0;width:100%}
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce){
-  html{scroll-behavior:auto}
-  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
-  [data-reveal]{opacity:1;transform:none}
-  .ecg-draw,.cta-ecg path{stroke-dashoffset:0;animation:none}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediCare+ | Healthcare, organized around you.</title>
+    <meta name="description" content="MediCare+ connects appointments, consultations, prescriptions, medication reminders, and medical history in one secure healthcare platform.">
+    <meta name="theme-color" content="#0d9488">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>➕</text></svg>" />
+    <style>
+        :root {
+            --primary: #0d9488; --primary-hover: #0f766e; --primary-light: #ccfbf1;
+            --bg-main: #f8fafc; --bg-dark: #0f172a; --surface: #ffffff;
+            --text-primary: #0f172a; --text-secondary: #64748b; --border: #e2e8f0;
+            --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px;
+            --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04); --shadow-md: 0 8px 30px rgba(15, 23, 42, 0.08); --shadow-lg: 0 20px 50px rgba(15, 23, 42, 0.12);
+            --shadow-primary: 0 8px 20px rgba(13, 148, 136, 0.25); --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background: var(--bg-main); color: var(--text-primary); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+        a { text-decoration: none; color: inherit; } ul { list-style: none; } img { max-width: 100%; display: block; }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
+        .section { padding: 6rem 0; } .text-center { text-align: center; } .mb-2 { margin-bottom: 2rem; }
+        h1 { font-size: 4rem; font-weight: 800; line-height: 1.05; margin-bottom: 1.5rem; letter-spacing: -0.03em; }
+        h2 { font-size: 2.5rem; font-weight: 700; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+        h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.75rem; letter-spacing: -0.01em; }
+        p { color: var(--text-secondary); margin-bottom: 1.5rem; } .lead { font-size: 1.25rem; line-height: 1.6; }
+        header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); }
+        .navbar { display: flex; justify-content: space-between; align-items: center; height: 72px; }
+        .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary-hover); display: flex; align-items: center; gap: 0.5rem; }
+        .logo span { color: var(--primary); }
+        .nav-links { display: flex; align-items: center; gap: 0.5rem; }
+        .nav-links a { font-weight: 500; color: var(--text-secondary); transition: var(--transition); padding: 0.5rem 0.9rem; border-radius: var(--radius-sm); font-size: 0.95rem; }
+        .nav-links a:hover { color: var(--primary-hover); background: var(--primary-light); }
+        .nav-links a.active { color: var(--primary-hover); font-weight: 600; background: var(--primary-light); }
+        .nav-cta-group { display: flex; align-items: center; gap: 1rem; }
+        .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; padding: 0.5rem; }
+        .mobile-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 999; opacity: 0; visibility: hidden; transition: var(--transition); }
+        .mobile-overlay.active { opacity: 1; visibility: visible; }
+        .mobile-nav { position: fixed; top: 0; right: -100%; width: 80%; max-width: 320px; height: 100vh; background: var(--surface); z-index: 1001; padding: 2rem 1.5rem; transition: var(--transition); box-shadow: var(--shadow-lg); overflow-y: auto; }
+        .mobile-nav.active { right: 0; }
+        .mobile-nav a { display: block; padding: 1rem 0; border-bottom: 1px solid var(--border); color: var(--text-primary); font-weight: 500; }
+        .close-mobile { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.85rem 1.6rem; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; border: none; transition: var(--transition); font-size: 0.95rem; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: var(--shadow-primary); }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-3px); box-shadow: 0 12px 24px rgba(13, 148, 136, 0.35); }
+        .btn-outline { border: 2px solid var(--border); color: var(--text-primary); background: transparent; }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary-hover); background: var(--primary-light); }
+        .btn-white { background: white; color: var(--primary-hover); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .btn-white:hover { transform: translateY(-3px); background: var(--primary-light); }
+        .btn-lg { padding: 1.1rem 2.2rem; font-size: 1.1rem; border-radius: var(--radius-md); }
+        .hero { background: radial-gradient(circle at 10% 20%, rgba(204, 251, 241, 0.4) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(204, 251, 241, 0.3) 0%, transparent 45%), var(--bg-main); padding: 6rem 0 4rem; overflow: hidden; }
+        .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        .hero-visuals { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 2rem; border: 1px solid rgba(255, 255, 255, 0.6); }
+        .hero-preview-card { background: var(--bg-main); padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 1px solid var(--border); }
+        .hero-preview-card .label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }
+        .hero-preview-card .value { font-size: 1.3rem; color: var(--text-primary); font-weight: 700; margin-top: 0.25rem; }
+        .steps-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+        .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; max-width: 1100px; margin: 0 auto; }
+        .step-card { text-align: center; position: relative; background: var(--bg-main); padding: 2rem; border-radius: var(--radius-md); border: 1px solid var(--border); transition: var(--transition); }
+        .step-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+        .step-num { width: 48px; height: 48px; background: var(--bg-dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; margin: 0 auto 1.25rem auto; font-size: 1.1rem; }
+        .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        .preview-card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 2.5rem; border: 1px solid var(--border); }
+        .med-timer-preview { background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%); color: white; text-align: center; position: relative; overflow: hidden; }
+        .med-timer-preview::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%); pointer-events: none; }
+        .med-timer-preview h3, .med-timer-preview p { color: white; }
+        .timer-circle { width: 120px; height: 120px; border: 4px solid rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 1.5rem auto; font-size: 1.5rem; font-weight: 700; background: rgba(255,255,255,0.05); position: relative; z-index: 1; }
+        .security-section { background: var(--surface); border-top: 1px solid var(--border); }
+        .security-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; text-align: center; max-width: 1000px; margin: 0 auto; }
+        .sec-status { padding: 2rem; background: var(--bg-main); border-radius: var(--radius-md); border: 2px solid var(--border); transition: var(--transition); }
+        .sec-status:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .sec-status.during { border-color: #16a34a; background: #f0fdf4; }
+        .cta-primary { background: var(--bg-dark); color: white; padding: 5rem 0; text-align: center; position: relative; overflow: hidden; }
+        .cta-primary::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, rgba(13, 148, 136, 0.2) 0%, transparent 60%); }
+        .cta-primary h2, .cta-primary p { color: white; position: relative; z-index: 1; }
+        .cta-primary .btn-primary { background: var(--primary); color: white; position: relative; z-index: 1; }
+        .cta-primary .btn-primary:hover { background: var(--primary-hover); }
+        footer { background: var(--bg-dark); color: #94a3b8; padding: 4rem 0 2rem 0; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+        .footer-col h4 { color: white; margin-bottom: 1.5rem; font-weight: 600; font-size: 1.1rem; }
+        .footer-col a { display: block; margin-bottom: 0.75rem; color: #94a3b8; transition: var(--transition); }
+        .footer-col a:hover { color: white; padding-left: 5px; }
+        .footer-bottom { text-align: center; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.9rem; color: #64748b; }
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+        @media (max-width: 1024px) { h1 { font-size: 3rem; } .steps-grid { grid-template-columns: repeat(2, 1fr); } .footer-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 768px) { .nav-links { display: none; } .mobile-menu-btn { display: block; } .hero-grid, .preview-grid { grid-template-columns: 1fr; gap: 3rem; } .security-grid { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: 1fr; gap: 2rem; } h1 { font-size: 2.5rem; } h2 { font-size: 2rem; } .section { padding: 4rem 0; } .hero { padding: 3rem 0; } }
+        @media (max-width: 480px) { .steps-grid { grid-template-columns: 1fr; } .nav-cta-group .btn { display: none; } .nav-cta-group .mobile-menu-btn { display: block; } }
+    </style>
 </head>
 <body>
-
-<!-- SVG icon sprite (thin line, rounded caps — no emoji anywhere) -->
-<svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <symbol id="i-activity" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
-  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6.5 9.5 17 4 11.5"/></symbol>
-  <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.4 12.3 2.4 2.4 4.8-5.2"/></symbol>
-  <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4.5 12h15"/><path d="m13 5.5 6.5 6.5-6.5 6.5"/></symbol>
-  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
-  <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
-  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13"/></symbol>
-  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6.4 8.8a5.6 5.6 0 0 1 11.2 0c0 6 2.4 7.7 2.4 7.7H4s2.4-1.7 2.4-7.7"/><path d="M10.2 20a2 2 0 0 0 3.6 0"/></symbol>
-  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
-  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M8 2.5v4M16 2.5v4M3 9.5h18"/></symbol>
-  <symbol id="i-video" viewBox="0 0 24 24"><path d="m22 8.5-6.5 3.5 6.5 3.5v-7Z"/><rect x="2" y="6" width="13.5" height="12" rx="2.5"/></symbol>
-  <symbol id="i-pill" viewBox="0 0 24 24"><path d="M10.7 20.2 3.8 13.3a4.9 4.9 0 0 1 7-7l6.9 7a4.9 4.9 0 0 1-7 7Z"/><path d="m8.5 8.2 7.3 7.3"/></symbol>
-  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M10 2.5v7l-5.3 10.6a1.2 1.2 0 0 0 1.1 1.7h12.4a1.2 1.2 0 0 0 1.1-1.7L14 9.5v-7"/><path d="M8.5 2.5h7M7.2 15.5h9.6"/></symbol>
-  <symbol id="i-clipboard" viewBox="0 0 24 24"><path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/><rect x="9" y="2.5" width="6" height="3.5" rx="1"/><path d="M9 12h6M9 16h4"/></symbol>
-  <symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.7 8.9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1Z"/><path d="m9 12 2 2 4-4"/></symbol>
-  <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3v5ZM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3v5Z"/></symbol>
-  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
-  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20v-1.5a5 5 0 0 1 5-5h3a5 5 0 0 1 5 5V20"/><path d="M16 5.2a3.5 3.5 0 0 1 0 5.9M21.5 20v-1.5a5 5 0 0 0-3.5-4.8"/></symbol>
-  <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></symbol>
-  <symbol id="i-list-checks" viewBox="0 0 24 24"><path d="m3.5 7 1.5 1.5L8.5 5M3.5 17l1.5 1.5L8.5 15M12.5 7h8M12.5 17h8"/></symbol>
-  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20.5 11.5A8.5 8.5 0 0 0 6 6.5L3.5 9"/><path d="M3.5 4v5h5"/><path d="M3.5 12.5A8.5 8.5 0 0 0 18 17.5l2.5-2.5"/><path d="M20.5 20v-5h-5"/></symbol>
-  <symbol id="i-heart-pulse" viewBox="0 0 24 24"><path d="M12 20.4 4.9 13.4C3.7 12.2 2.8 10.7 2.8 9A4.9 4.9 0 0 1 7.7 4.1c1.5 0 2.7.5 4.3 2.1 1.6-1.6 2.8-2.1 4.3-2.1a4.9 4.9 0 0 1 4.9 4.9c0 1.7-.9 3.2-2.1 4.4Z"/><path d="M5.5 11.5h2.6l1.1-2 2 4.2 1.6-3.2.9 1h3.8"/></symbol>
-  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14.5" rx="2.5"/><path d="m3.5 7.5 7.5 5.2a1.8 1.8 0 0 0 2 0l7.5-5.2"/></symbol>
-  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.1 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></symbol>
-  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/></symbol>
-</svg>
-
-<a class="skip" href="#main">Skip to content</a>
-
-<!-- ============ Navigation ============ -->
-<header class="nav" id="nav">
-  <div class="container nav-inner">
-    <!-- LOGO: swap "assets/logo.png" with your own file to rebrand everywhere -->
-    <a class="logo" href="#home" aria-label="MediCare+ home">
-      <img class="logo-img" src="assets/logo.png" alt="MediCare+ logo" width="36" height="36"
-           onerror="this.onerror=null;this.src=window.LOGO_FALLBACK">
-      <span>MediCare<span class="plus">+</span></span>
-    </a>
-    <nav aria-label="Primary">
-      <ul class="nav-links">
-        <li><a href="#home">Home</a></li>
-        <li><a href="#services">Services</a></li>
-        <li><a href="#about">About</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </nav>
-    <!-- Appointment flow lives on its own page/site — see MEDICARE.APPOINTMENT_URL -->
-    <a class="btn btn-primary btn-nav nav-cta" href="appointment.html" data-appointment-link>Book Appointment</a>
-    <button class="nav-toggle" id="menuBtn" type="button" aria-label="Toggle menu" aria-expanded="false">
-      <svg class="ic i-menu"><use href="#i-menu"></use></svg>
-      <svg class="ic i-close"><use href="#i-close"></use></svg>
-    </button>
-  </div>
-</header>
-
-<div class="mobile-menu" id="mobileMenu">
-  <a href="#home">Home</a>
-  <a href="#services">Services</a>
-  <a href="#about">About</a>
-  <a href="#contact">Contact</a>
-  <a class="btn btn-primary" href="appointment.html" data-appointment-link>Book Appointment</a>
-</div>
-
-<main id="main">
-
-  <!-- ============ Hero ============ -->
-  <section class="hero" id="home">
-    <span class="deco-plus" style="top:22%;left:3%" aria-hidden="true"><svg class="ic" style="width:30px;height:30px"><use href="#i-plus"></use></svg></span>
-    <span class="deco-plus" style="bottom:14%;left:46%" aria-hidden="true"><svg class="ic" style="width:20px;height:20px"><use href="#i-plus"></use></svg></span>
-    <div class="container">
-      <div data-reveal>
-        <span class="hero-badge"><svg class="ic ic-14"><use href="#i-activity"></use></svg>Digital healthcare management</span>
-        <h1>Your Health, Our <span class="hl">Priority</span> — Always</h1>
-        <p class="hero-sub">MediCare+ keeps your medical history organized, connects you with verified doctors, and turns every digital prescription into an automatic medication schedule — so you stay on track without lifting a finger.</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="appointment.html" data-appointment-link>Get Started</a>
-          <a class="btn btn-outline" href="#services">Our Services</a>
-        </div>
-        <div class="hero-trust">
-          <span><svg class="ic ic-16"><use href="#i-shield-check"></use></svg>Encrypted health records</span>
-          <span><svg class="ic ic-16"><use href="#i-file-text"></use></svg>Audit-logged access</span>
-          <span><svg class="ic ic-16"><use href="#i-check-circle"></use></svg>Verified doctors only</span>
-        </div>
-      </div>
-
-      <div class="hero-visual" data-reveal data-delay="150">
-        <div class="hv-blob" aria-hidden="true"></div>
-        <div class="hv-blob2" aria-hidden="true"></div>
-        <svg class="hv-ring" viewBox="0 0 400 400" aria-hidden="true"><circle cx="200" cy="200" r="192" fill="none" stroke="#B8F0E4" stroke-width="1.5" stroke-dasharray="4 12"/></svg>
-
-        <!-- Live patient card -->
-        <div class="hv-card">
-          <div class="hv-head">
-            <span class="avatar">AH</span>
-            <div class="hv-id"><strong>Amira H.</strong><span>Patient · ID MC-2048</span></div>
-            <span class="hv-status"><i></i>Vitals stable</span>
-          </div>
-          <div class="ecg-box">
-            <div class="ecg-meta"><svg class="ic ic-13"><use href="#i-activity"></use></svg>Heart rate · 72 bpm</div>
-            <svg class="ecg" viewBox="0 0 320 90" preserveAspectRatio="none" aria-hidden="true">
-              <path class="ecg-base" pathLength="600" d="M0 52 H72 Q78 52 81 46 Q84 40 87 46 Q90 52 96 52 H108 L114 64 L122 20 L130 66 L136 52 H150 Q156 52 159 47 Q162 42 165 47 Q168 52 174 52 H186 L192 64 L200 20 L208 66 L214 52 H320"/>
-              <path class="ecg-draw" pathLength="600" d="M0 52 H72 Q78 52 81 46 Q84 40 87 46 Q90 52 96 52 H108 L114 64 L122 20 L130 66 L136 52 H150 Q156 52 159 47 Q162 42 165 47 Q168 52 174 52 H186 L192 64 L200 20 L208 66 L214 52 H320"/>
-            </svg>
-          </div>
-          <div class="hv-medhead">
-            <p class="hv-label">Today's medication</p>
-            <div class="donut-wrap">
-              <svg class="donut" viewBox="0 0 56 56" aria-hidden="true">
-                <circle class="bg" cx="28" cy="28" r="24"/>
-                <circle class="fg" id="donutFg" cx="28" cy="28" r="24"/>
-              </svg>
-              <span class="donut-label" id="donutLabel">1/3</span>
+    <header>
+        <div class="container navbar">
+            <a href="index.html" class="logo">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg>
+                MediCare<span>+</span>
+            </a>
+            <nav class="nav-links" aria-label="Main Navigation">
+                <a href="index.html" class="active">Home</a>
+                <a href="doctors.html">Doctors</a>
+                <a href="appointments.html">Appointments</a>
+                <a href="prescriptions.html">Prescriptions</a>
+                <a href="medications.html">Medications</a>
+                <a href="medical-history.html">History</a>
+                <a href="security.html">Security</a>
+            </nav>
+            <div class="nav-cta-group">
+                <a href="patient-login.html" class="btn btn-outline">Patient Login</a>
+                <a href="doctor-login.html" class="btn btn-primary">Doctor Login</a>
+                <button class="mobile-menu-btn" aria-label="Open navigation menu" onclick="toggleMobileMenu(true)">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
             </div>
-          </div>
-          <div id="doseList">
-            <button class="dose" type="button" data-state="taken" data-base="taken">
-              <span class="dose-time">08:00</span>
-              <span class="dose-info"><strong>Vitamin D</strong><em>1 tablet · with breakfast</em></span>
-              <span class="dose-status taken"><svg class="ic ic-14"><use href="#i-check"></use></svg>Taken</span>
-            </button>
-            <button class="dose" type="button" data-state="due" data-base="due">
-              <span class="dose-time">14:00</span>
-              <span class="dose-info"><strong>Medication A</strong><em>1 tablet · after lunch</em></span>
-              <span class="dose-status due"><i class="dot"></i>Due now</span>
-            </button>
-            <button class="dose" type="button" data-state="upcoming" data-base="upcoming">
-              <span class="dose-time">20:00</span>
-              <span class="dose-info"><strong>Medication A</strong><em>1 tablet · before dinner</em></span>
-              <span class="dose-status upcoming"><svg class="ic ic-14"><use href="#i-clock"></use></svg>Upcoming</span>
-            </button>
-          </div>
-          <p class="hv-hint">Tap a dose to record it — mirrors in-app medication tracking</p>
         </div>
-
-        <!-- Floating cards -->
-        <div class="float-card fc-doctors">
-          <span class="fc-icon"><svg class="ic"><use href="#i-shield-check"></use></svg></span>
-          <div class="fc-text"><strong>Certified Doctors</strong><span>500+ verified specialists</span></div>
-          <span class="stack" aria-hidden="true"><i>SM</i><i>OH</i><i>JP</i></span>
+    </header>
+    <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu(false)"></div>
+    <nav class="mobile-nav" id="mobileNav" aria-label="Mobile Navigation">
+        <button class="close-mobile" aria-label="Close menu" onclick="toggleMobileMenu(false)">&times;</button>
+        <a href="index.html">Home</a>
+        <a href="doctors.html">Doctors</a>
+        <a href="appointments.html">Appointments</a>
+        <a href="prescriptions.html">Prescriptions</a>
+        <a href="medications.html">Medications</a>
+        <a href="medical-history.html">Medical History</a>
+        <a href="security.html">Security</a>
+        <a href="patient-login.html">Patient Login</a>
+        <a href="doctor-login.html">Doctor Login</a>
+        <a href="dashboard.html" class="btn btn-primary" style="margin-top: 1rem;">Dashboard</a>
+    </nav>
+    <main>
+        <section class="hero">
+            <div class="container hero-grid">
+                <div class="reveal active">
+                    <h1>Healthcare, organized around you.</h1>
+                    <p class="lead">MediCare+ connects your appointments, doctor consultations, digital prescriptions, medication reminders, and medical history in one secure healthcare platform.</p>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <a href="appointments.html" class="btn btn-primary btn-lg">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            Book an Appointment
+                        </a>
+                        <a href="doctors.html" class="btn btn-outline btn-lg">View Doctors</a>
+                    </div>
+                </div>
+                <div class="hero-visuals reveal active">
+                    <div class="hero-preview-card">
+                        <p class="label">Upcoming Appointment</p>
+                        <p class="value">Dr. Sarah Ahmed</p>
+                        <p style="color: var(--text-secondary); margin-bottom: 0; margin-top: 0.25rem;">Today — 3:00 PM</p>
+                    </div>
+                    <div class="hero-preview-card" style="border-left: 4px solid var(--primary);">
+                        <p class="label">Next Medication</p>
+                        <p class="value">500 mg</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                            <span style="font-weight: 600; color: var(--text-primary);">08:00 PM</span>
+                            <span style="background: var(--primary-light); color: var(--primary-hover); padding: 0.35rem 0.9rem; border-radius: 1rem; font-weight: 700; font-family: monospace;" id="hero-timer">01:24:36</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 1rem; margin-bottom: 0;" onclick="window.location.href='medications.html'">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                        Mark as Taken (Demo)
+                    </button>
+                </div>
+            </div>
+        </section>
+        <section class="section steps-section">
+            <div class="container">
+                <h2 class="text-center mb-2">Your healthcare journey, connected.</h2>
+                <p class="text-center lead mb-2" style="max-width: 600px; margin: 0 auto 3rem auto;">From booking an appointment to updating your medical history, MediCare+ connects every step.</p>
+                <div class="steps-grid">
+                    <div class="step-card"><div class="step-num">01</div><h3>Book Appointment</h3><p>Choose a doctor and available appointment time.</p></div>
+                    <div class="step-card"><div class="step-num">02</div><h3>Doctor Consultation</h3><p>Meet with your verified doctor during your scheduled appointment.</p></div>
+                    <div class="step-card"><div class="step-num">03</div><h3>Digital Prescription</h3><p>Your doctor can issue your prescription digitally.</p></div>
+                    <div class="step-card"><div class="step-num">04</div><h3>Medication Reminder</h3><p>Your prescription automatically creates a medication schedule and reminders.</p></div>
+                </div>
+            </div>
+        </section>
+        <section class="section">
+            <div class="container preview-grid">
+                <div class="preview-card reveal">
+                    <div style="border-bottom: 2px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                        <h3 style="margin-bottom: 0.25rem; color: var(--primary-hover);">DIGITAL PRESCRIPTION</h3>
+                        <p style="margin-bottom: 0; font-weight: 600; color: var(--text-primary);">Dr. Sarah Ahmed - General Medicine</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                        <div><strong style="display:block; color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.25rem;">Medicine:</strong> Example Medicine</div>
+                        <div><strong style="display:block; color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.25rem;">Dosage:</strong> 500 mg</div>
+                        <div><strong style="display:block; color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.25rem;">Frequency:</strong> 3 times daily</div>
+                        <div><strong style="display:block; color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.25rem;">Duration:</strong> 5 days</div>
+                    </div>
+                    <a href="prescriptions.html" class="btn btn-primary" style="width: 100%;">View Prescription Details</a>
+                </div>
+                <div class="preview-card med-timer-preview reveal">
+                    <h3 style="letter-spacing: 0.1em; opacity: 0.8;">NEXT MEDICATION</h3>
+                    <h2 style="margin-bottom: 0.5rem; color: white;">Example Medicine</h2>
+                    <p style="color: rgba(255,255,255,0.8); margin-bottom: 0;">500 mg Dosage</p>
+                    <div class="timer-circle">08:00<br><span style="font-size: 0.8rem; font-weight: 400;">PM</span></div>
+                    <h2 style="margin-bottom: 1.5rem; letter-spacing: 2px; font-family: monospace; color: white;" id="med-timer">01:24:36</h2>
+                    <button class="btn btn-white"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Mark as Taken</button>
+                </div>
+            </div>
+        </section>
+        <section class="section security-section">
+            <div class="container">
+                <h2 class="text-center mb-2">Patient information stays protected.</h2>
+                <p class="text-center lead mb-2" style="max-width: 700px; margin: 0 auto 3rem auto;">Doctors do not receive permanent unrestricted access to patient medical history. Patient information becomes available only during the authorized consultation window of a valid appointment.</p>
+                <div class="security-grid">
+                    <div class="sec-status"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="margin: 0 auto 1rem auto;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><h3>Before Appointment</h3><p style="margin-bottom: 0;">Access Restricted</p></div>
+                    <div class="sec-status during"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" style="margin: 0 auto 1rem auto;"><path d="M9 12l2 2 4-4"/><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><h3>During Appointment</h3><p style="margin-bottom: 0; color: #16a34a; font-weight: 600;">Authorized Access</p></div>
+                    <div class="sec-status"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="margin: 0 auto 1rem auto;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><h3>After Appointment</h3><p style="margin-bottom: 0;">Access Revoked</p></div>
+                </div>
+                <div class="text-center" style="margin-top: 3rem;"><a href="security.html" class="btn btn-primary">Learn About Security</a></div>
+            </div>
+        </section>
+        <section class="cta-primary">
+            <div class="container text-center">
+                <h2>Ready to take control of your healthcare?</h2>
+                <p class="lead" style="margin-bottom: 2.5rem;">Access all your MediCare+ features from a single, unified dashboard.</p>
+                <a href="dashboard.html" class="btn btn-primary btn-lg">Open MediCare+ Dashboard</a>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="index.html" class="logo" style="color: white; margin-bottom: 1rem; display: inline-flex;">MediCare<span>+</span></a>
+                    <p>Healthcare, organized around you. A secure platform connecting patients and doctors.</p>
+                </div>
+                <div class="footer-col"><h4>Platform</h4><a href="index.html">Home</a><a href="doctors.html">Doctors</a><a href="appointments.html">Appointments</a><a href="prescriptions.html">Prescriptions</a><a href="medications.html">Medications</a><a href="medical-history.html">Medical History</a><a href="dashboard.html">Dashboard</a></div>
+                <div class="footer-col"><h4>Resources</h4><a href="security.html">Security</a><a href="#">Help</a><a href="#">Contact</a></div>
+                <div class="footer-col"><h4>Account</h4><a href="patient-login.html">Patient Login</a><a href="patient-register.html">Patient Register</a><a href="doctor-login.html">Doctor Login</a><a href="doctor-register.html">Doctor Register</a></div>
+            </div>
+            <div class="footer-bottom"><p>&copy; 2024 MediCare+. All rights reserved. <a href="privacy.html" style="color: #64748b; margin: 0 0.5rem;">Privacy</a> | <a href="terms.html" style="color: #64748b; margin: 0 0.5rem;">Terms</a></p></div>
         </div>
-        <div class="float-card fc-support">
-          <span class="fc-icon"><svg class="ic"><use href="#i-headphones"></use></svg></span>
-          <div class="fc-text"><strong>24/7 Support</strong><span>Always here when you need us</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ Services ============ -->
-  <section class="section section-ice" id="services">
-    <div class="container">
-      <div class="sec-head" data-reveal>
-        <span class="overline">Our Services</span>
-        <h2>Everything your care needs, in one place</h2>
-        <p class="lede">Four connected services built on a single secure record — information follows you, not the other way around.</p>
-      </div>
-      <div class="services-grid">
-        <article class="service-card" data-reveal>
-          <div class="sc-top"><span class="sc-icon"><svg class="ic" style="width:24px;height:24px"><use href="#i-video"></use></svg></span><span class="sc-num">01</span></div>
-          <h3>Telemedicine</h3>
-          <p>Consult verified doctors by secure video or chat — with every note and outcome saved straight into your history.</p>
-          <div class="sc-more"><div><ul>
-            <li><svg class="ic ic-14"><use href="#i-check"></use></svg>Secure video &amp; chat consultations</li>
-            <li><svg class="ic ic-14"><use href="#i-check"></use></svg>Consultation notes auto-saved</li>
-            <li><svg class="ic ic-14"><use href="#i-check"></use></svg>Easy follow-up scheduling</li>
-          </ul></div></div>
-          <button class="sc-link" type="button" aria-expanded="false"><span>Learn more</span><svg class="ic ic-16"><use href="#i-arrow-right"></use></svg></button>
-        </article>
-        <article class="service-card" data-reveal data-delay="70">
-          <div class="sc-top"><span class="sc-icon"><svg class="ic" style="width:24px;height:24px"><use href="#i-pill"></use></svg></span><span class="sc-num">02</span></div>
-          <h3>Online Pharmacy</h3>
-          <p>Prescriptions flow directly from your doctor to partner pharmacies — refills ready without repeating yourself.</p>
-          <div class="sc-more"><div><ul>
-            <li><svg class="ic ic-14"><use href="#i-check"></use></svg>E-prescriptions forwarded securely</li>
-            <li><svg class="ic ic-14"><use href="#i-check"></use></svg>Refill-ready medication records</li>
-            <li><svg class="ic ic-14"><use href="#i-check"></use></svg>Complete medication history on file</li>
-          </ul></div></div>
-          <button class="sc-link" type="button" aria-expanded="false"><span>Learn more</span><svg class="ic ic-16"><use href="#i-arrow-right"></use></svg></button>
-        </article>
-        <article class="service-card" data-reveal data-delay="140">
-          <div class="sc-top"><span class="sc-icon"><svg class="ic" style="width:24px;height:24px"><use href="#i-flask"></use></svg></span><span class="sc-num">03</span></div>
-          <h3>Diagnostics</h3>
-          <p>Lab and imaging requests created during consultations, with results filed chronologically in your record.</p>
-          <div class="sc-more"><div><ul>
-            <li><svg class="ic ic-14"><use href="#i-check"></use></svg>Requests routed from consultations</li>
-            <li><svg class="ic ic-14"><use href="#i-check"></use></svg>Results attached chronologically</li>
-            <li><svg class="ic ic-14"><use href="#i-check"></use></svg>Doctor-reviewed summaries</li>
-          </ul></div></div>
-          <button class="sc-link" type="button" aria-expanded="false"><span>Learn more</span><svg class="ic ic-16"><use href="#i-arrow-right"></use></svg></button>
-        </article>
-        <article class="service-card" data-reveal data-delay="210">
-          <div class="sc-top"><span class="sc-icon"><svg class="ic" style="width:24px;height:24px"><use href="#i-clipboard"></use></svg></span><span class="sc-num">04</span></div>
-          <h3>Health Records</h3>
-          <p>One organized, chronological medical history — allergies, conditions, visits and prescriptions — under your control.</p>
-          <div class="sc-more"><div><ul>
-            <li><svg class="ic ic-14"><use href="#i-check"></use></svg>Allergies, conditions &amp; visits in one timeline</li>
-            <li><svg class="ic ic-14"><use href="#i-check"></use></svg>Granular, fully logged access controls</li>
-            <li><svg class="ic ic-14"><use href="#i-check"></use></svg>Chronological consultation history</li>
-          </ul></div></div>
-          <button class="sc-link" type="button" aria-expanded="false"><span>Learn more</span><svg class="ic ic-16"><use href="#i-arrow-right"></use></svg></button>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ How it works / About ============ -->
-  <section class="section" id="about">
-    <div class="container flow-grid">
-      <div class="flow-intro" data-reveal>
-        <span class="overline">How it works</span>
-        <h2>One connected loop of care</h2>
-        <p class="lede">Every part of MediCare+ exists to move information safely around a single loop — from your appointment to your prescription, and from each dose back into your history.</p>
-        <div class="role-legend">
-          <span class="tag tag-patient">Patient</span>
-          <span class="tag tag-doctor">Doctor</span>
-          <span class="tag tag-system">System</span>
-        </div>
-        <div class="safety-note">
-          <svg class="ic"><use href="#i-shield-check"></use></svg>
-          <p><strong>Safety principle —</strong> MediCare+ stores, organizes, schedules and communicates authorized healthcare information. It never diagnoses, alters a prescription, or invents a schedule.</p>
-        </div>
-      </div>
-
-      <div class="flow" id="flow">
-        <span class="flow-fill" id="flowFill" aria-hidden="true"></span>
-        <div class="flow-step" data-reveal>
-          <div class="flow-node"><svg class="ic"><use href="#i-calendar"></use></svg></div>
-          <div class="flow-body">
-            <div class="flow-meta"><span class="tag tag-patient">Patient</span><span class="flow-kicker">Step 01</span></div>
-            <h3>Book an appointment</h3>
-            <p>Browse verified doctors by specialty, pick an open slot, and request a visit. The doctor's dashboard updates the moment you do.</p>
-          </div>
-        </div>
-        <div class="flow-step" data-reveal>
-          <div class="flow-node"><svg class="ic"><use href="#i-heart-pulse"></use></svg></div>
-          <div class="flow-body">
-            <div class="flow-meta"><span class="tag tag-doctor">Doctor</span><span class="flow-kicker">Step 02</span></div>
-            <h3>Consult with full context</h3>
-            <p>During the visit, the doctor receives time-limited, fully logged access to your relevant medical history — and it expires when the consultation ends.</p>
-          </div>
-        </div>
-        <div class="flow-step" data-reveal>
-          <div class="flow-node"><svg class="ic"><use href="#i-file-text"></use></svg></div>
-          <div class="flow-body">
-            <div class="flow-meta"><span class="tag tag-doctor">Doctor</span><span class="flow-kicker">Step 03</span></div>
-            <h3>Write the prescription</h3>
-            <p>Medicine, dosage, frequency, duration and instructions — recorded precisely, with no room for ambiguity.</p>
-          </div>
-        </div>
-        <div class="flow-step" data-reveal>
-          <div class="flow-node"><svg class="ic"><use href="#i-refresh"></use></svg></div>
-          <div class="flow-body">
-            <div class="flow-meta"><span class="tag tag-system">System</span><span class="flow-kicker">Step 04</span></div>
-            <h3>Process automatically</h3>
-            <p>The backend validates the prescription and generates your medication schedule — no manual alarms, no transcription errors.</p>
-          </div>
-        </div>
-        <div class="flow-step" data-reveal>
-          <div class="flow-node"><svg class="ic"><use href="#i-bell"></use></svg></div>
-          <div class="flow-body">
-            <div class="flow-meta"><span class="tag tag-patient">Patient</span><span class="flow-kicker">Step 05</span></div>
-            <h3>Get reminded on time</h3>
-            <p>Notifications arrive at each scheduled dose, for exactly the prescribed period — then stop on their own when treatment ends.</p>
-          </div>
-        </div>
-        <div class="flow-step" data-reveal>
-          <div class="flow-node"><svg class="ic"><use href="#i-list-checks"></use></svg></div>
-          <div class="flow-body">
-            <div class="flow-meta"><span class="tag tag-system">System</span><span class="flow-kicker">Step 06</span></div>
-            <h3>Close the loop</h3>
-            <p>Taken, skipped or missed doses are recorded and folded back into your history — ready for the next consultation.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ Statistics ============ -->
-  <section class="section stats-section">
-    <div class="container">
-      <div class="sec-head center" style="margin-bottom:0" data-reveal>
-        <span class="overline">The platform in numbers</span>
-      </div>
-      <div class="stats-row" data-reveal>
-        <div class="stat"><div class="stat-num"><b data-count="500">0</b><span>+</span></div><p class="stat-label">Certified Doctors</p></div>
-        <div class="stat"><div class="stat-num"><b data-count="50">0</b><span>K+</span></div><p class="stat-label">Happy Patients</p></div>
-        <div class="stat"><div class="stat-num"><b data-count="120">0</b><span>+</span></div><p class="stat-label">Partner Clinics</p></div>
-        <div class="stat"><div class="stat-num"><b data-count="24">0</b><span>/7</span></div><p class="stat-label">Medical Support</p></div>
-      </div>
-      <p class="stats-note" data-reveal><svg class="ic ic-14"><use href="#i-info"></use></svg>Figures shown are illustrative for this preview build and will reflect verified platform data before public release.</p>
-    </div>
-  </section>
-
-  <!-- ============ Trust + CTA ============ -->
-  <section class="cta-wrap">
-    <div class="container">
-      <div class="trust-overline" data-reveal><span class="overline">Privacy &amp; security, by design</span></div>
-      <div class="trust-row" data-reveal>
-        <div class="trust-item"><span class="fc-icon"><svg class="ic"><use href="#i-users"></use></svg></span><div><strong>Role-based access</strong><span>Patients, doctors and admins see only what they are authorized to see.</span></div></div>
-        <div class="trust-item"><span class="fc-icon"><svg class="ic"><use href="#i-file-text"></use></svg></span><div><strong>Audit-logged access</strong><span>Every record view and important action is recorded — who, what, when.</span></div></div>
-        <div class="trust-item"><span class="fc-icon"><svg class="ic"><use href="#i-clock"></use></svg></span><div><strong>Time-limited consultations</strong><span>Doctor access to your history expires the moment the visit ends.</span></div></div>
-        <div class="trust-item"><span class="fc-icon"><svg class="ic"><use href="#i-lock"></use></svg></span><div><strong>Secure by default</strong><span>Encrypted transport, hashed credentials and protected API endpoints.</span></div></div>
-      </div>
-      <div class="cta-panel" data-reveal>
-        <svg class="cta-ecg" viewBox="0 0 1200 140" preserveAspectRatio="none" aria-hidden="true">
-          <path pathLength="600" d="M0 70 H260 l12 0 8-20 14 44 12-30 8 10 H580 l10 0 8-20 14 44 12-30 8 10 H900 l12 0 8-20 14 44 12-30 8 10 H1200"/>
-        </svg>
-        <h2>Take Control of Your Healthcare</h2>
-        <p>Your history, prescriptions and medication schedule — organized in one calm, secure place. Setting up takes less than two minutes.</p>
-        <a class="btn btn-coral" href="appointment.html" data-appointment-link>Book Your Appointment<svg class="ic ic-16"><use href="#i-arrow-right"></use></svg></a>
-      </div>
-    </div>
-  </section>
-</main>
-
-<!-- ============ Footer ============ -->
-<footer class="footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-col footer-brand">
-        <!-- LOGO: same file as the navbar — one swap rebrands both -->
-        <a class="logo" href="#home">
-          <img class="logo-img" src="assets/logo.png" alt="MediCare+ logo" width="34" height="34"
-               onerror="this.onerror=null;this.src=window.LOGO_FALLBACK">
-          <span style="font-size:22px">MediCare<span class="plus">+</span></span>
-        </a>
-        <p>A modern healthcare management platform connecting patients and doctors — from appointments and medical history to digital prescriptions and automatic medication reminders.</p>
-        <small>Privacy-first design · Audit-logged access</small>
-      </div>
-      <div class="footer-col">
-        <h4>Platform</h4>
-        <ul>
-          <li><a href="#home">Home</a></li>
-          <li><a href="#services">Services</a></li>
-          <li><a href="#about">How it works</a></li>
-          <li><a href="appointment.html" data-appointment-link>Book an appointment</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Services</h4>
-        <ul>
-          <li><a href="#services" data-service="0">Telemedicine</a></li>
-          <li><a href="#services" data-service="1">Online Pharmacy</a></li>
-          <li><a href="#services" data-service="2">Diagnostics</a></li>
-          <li><a href="#services" data-service="3">Health Records</a></li>
-        </ul>
-      </div>
-      <div class="footer-col" id="contact">
-        <h4>Support &amp; Contact</h4>
-        <ul>
-          <li><a class="contact-li" href="mailto:help@medicareplus.health"><svg class="ic ic-16"><use href="#i-mail"></use></svg>help@medicareplus.health</a></li>
-          <li><a class="contact-li" href="tel:+18005550134"><svg class="ic ic-16"><use href="#i-phone"></use></svg>+1 (800) 555-0134</a></li>
-          <li><span class="contact-li"><svg class="ic ic-16"><use href="#i-clock"></use></svg>Support available 24/7</span></li>
-        </ul>
-      </div>
-    </div>
-    <hr class="footer-divider">
-    <div class="footer-bottom">
-      <span class="sys-status"><i></i>All systems operational</span>
-      <span>© <span id="year">2025</span> MediCare+ <span class="sys-ver" id="appVer"></span></span>
-      <nav aria-label="Legal">
-        <a href="#" data-info="Privacy policy">Privacy Policy</a>
-        <a href="#" data-info="Terms of service">Terms of Service</a>
-        <a href="#" data-info="Security overview">Security</a>
-      </nav>
-    </div>
-  </div>
-</footer>
-
-<div class="toasts" id="toasts" aria-live="polite"></div>
-
-<noscript>
-  <div style="position:fixed;bottom:0;left:0;right:0;z-index:500;background:#0B1F3A;color:#fff;font-family:'Poppins',sans-serif;font-size:14px;padding:14px 24px;text-align:center">
-    MediCare+ works best with JavaScript enabled.
-  </div>
-</noscript>
-
-<script>
-(function(){
-'use strict';
-const $  = (s, c) => (c || document).querySelector(s);
-const $$ = (s, c) => Array.prototype.slice.call((c || document).querySelectorAll(s));
-const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-/* ---------- Version + year (from runtime config) ---------- */
- $('#year').textContent = new Date().getFullYear();
- $('#appVer').textContent = 'v' + (window.MEDICARE ? window.MEDICARE.APP_VERSION : '1.0.0');
-
-/* ---------- Appointment links: one config value drives all of them ----------
-   Every element with [data-appointment-link] gets its href set from
-   MEDICARE.APPOINTMENT_URL. When the dedicated appointment site is ready,
-   change APPOINTMENT_URL in the <head> config — no other edits needed.   */
-if (window.MEDICARE && window.MEDICARE.APPOINTMENT_URL){
-  $$('[data-appointment-link]').forEach(function(a){
-    a.setAttribute('href', window.MEDICARE.APPOINTMENT_URL);
-  });
-}
-
-/* ---------- Nav scroll state ---------- */
-const nav = $('#nav');
-window.addEventListener('scroll', function(){
-  nav.classList.toggle('scrolled', window.scrollY > 10);
-  onFlowScroll();
-}, { passive:true });
-
-/* ---------- Mobile menu ---------- */
-const menuBtn = $('#menuBtn'), mobileMenu = $('#mobileMenu');
-function closeMenu(){
-  mobileMenu.classList.remove('open');
-  menuBtn.classList.remove('active');
-  menuBtn.setAttribute('aria-expanded','false');
-}
-menuBtn.addEventListener('click', function(){
-  const open = mobileMenu.classList.toggle('open');
-  menuBtn.classList.toggle('active', open);
-  menuBtn.setAttribute('aria-expanded', String(open));
-});
- $$('#mobileMenu a').forEach(function(a){ a.addEventListener('click', closeMenu); });
-window.addEventListener('keydown', function(e){
-  if (e.key === 'Escape') closeMenu();
-});
-
-/* ---------- Reveal on scroll ---------- */
-const revealIO = new IntersectionObserver(function(entries){
-  entries.forEach(function(e){
-    if (e.isIntersecting){ e.target.classList.add('revealed'); revealIO.unobserve(e.target); }
-  });
-}, { threshold: 0.12 });
- $$('[data-reveal]').forEach(function(el){
-  if (el.dataset.delay) el.style.transitionDelay = el.dataset.delay + 'ms';
-  revealIO.observe(el);
-});
-
-/* ---------- Stats count-up ---------- */
-function animateCount(el){
-  const target = +el.dataset.count, dur = 1400, t0 = performance.now();
-  (function tick(t){
-    const p = Math.min((t - t0) / dur, 1);
-    el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
-    if (p < 1) requestAnimationFrame(tick);
-  })(t0);
-}
-const statIO = new IntersectionObserver(function(entries){
-  entries.forEach(function(e){
-    if (!e.isIntersecting) return;
-    $$('b[data-count]', e.target).forEach(function(b){
-      if (prefersReduced){ b.textContent = b.dataset.count; } else { animateCount(b); }
-    });
-    statIO.unobserve(e.target);
-  });
-}, { threshold: 0.4 });
-statIO.observe($('.stats-row'));
-
-/* ---------- Workflow scroll progress ---------- */
-const flow = $('#flow'), fill = $('#flowFill'), steps = $$('.flow-step');
-function onFlowScroll(){
-  if (!flow) return;
-  const r = flow.getBoundingClientRect();
-  const trigger = window.innerHeight * 0.55;
-  const p = Math.max(0, Math.min(1, (trigger - r.top) / r.height));
-  fill.style.height = (p * 100) + '%';
-  steps.forEach(function(s){
-    s.classList.toggle('active', s.getBoundingClientRect().top + 52 < trigger);
-  });
-}
-window.addEventListener('resize', onFlowScroll);
-onFlowScroll();
-
-/* ---------- Hero: interactive medication tracking ---------- */
-const CIRC = 2 * Math.PI * 24;
-const donutFg = $('#donutFg'), donutLabel = $('#donutLabel');
-donutFg.style.strokeDasharray = CIRC;
-let completeShown = false;
-
-const pillCfg = {
-  taken:    '<svg class="ic ic-14"><use href="#i-check"></use></svg>Taken',
-  due:      '<i class="dot"></i>Due now',
-  upcoming: '<svg class="ic ic-14"><use href="#i-clock"></use></svg>Upcoming'
-};
-function applyDose(btn){
-  $('.dose-status', btn).innerHTML = pillCfg[btn.dataset.state];
-}
-function heroUpdate(){
-  const doses = $$('#doseList .dose');
-  const taken = doses.filter(function(d){ return d.dataset.state === 'taken'; }).length;
-  donutFg.style.strokeDashoffset = CIRC * (1 - taken / doses.length);
-  donutLabel.textContent = taken + '/' + doses.length;
-  if (taken === doses.length && !completeShown){
-    completeShown = true;
-    toast('success', 'Schedule complete', 'All doses recorded for today. Well done.');
-  }
-  if (taken < doses.length) completeShown = false;
-}
- $$('.dose').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    if (btn.dataset.state === 'taken'){
-      btn.dataset.state = btn.dataset.base;
-    } else {
-      btn.dataset.state = 'taken';
-      const name = $('.dose-info strong', btn).textContent;
-      toast('success', 'Dose recorded', name + ' marked as taken — adherence updated.');
-    }
-    applyDose(btn);
-    heroUpdate();
-  });
-});
-heroUpdate();
-
-/* ---------- Toast system (timestamped) ---------- */
-const toasts = $('#toasts');
-const T_ICONS = { success:'#i-check-circle', reminder:'#i-bell', info:'#i-info', error:'#i-alert' };
-function nowTime(){
-  return new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
-}
-function toast(type, title, msg){
-  const el = document.createElement('div');
-  el.className = 'toast ' + type;
-  el.innerHTML = '<span class="t-icon"><svg class="ic"><use href="' + T_ICONS[type] + '"></use></svg></span>' +
-    '<div class="t-body"><span class="t-head"><strong>' + title + '</strong><em class="t-time">' + nowTime() + '</em></span>' +
-    '<span>' + msg + '</span></div>' +
-    '<button class="t-close" type="button" aria-label="Dismiss notification"><svg class="ic ic-14"><use href="#i-close"></use></svg></button>';
-  toasts.appendChild(el);
-  const kill = function(){ el.classList.add('out'); setTimeout(function(){ el.remove(); }, 300); };
-  el.querySelector('.t-close').addEventListener('click', kill);
-  setTimeout(kill, 4600);
-}
-
-/* =====================================================================
-   DOCTOR DIRECTORY — 12 specialties × 20 doctors (240 total)
-   This data currently powers no UI on this page. It is kept here as the
-   ready-made data source for the dedicated appointment site / backend:
-   - Frontend use : copy this object into the appointment site, or
-   - Backend use  : seed your doctors table with it, then serve it via
-                    GET /doctors?specialty=... and delete this block.
-===================================================================== */
-const DOCTORS = {
-  'General Medicine': [
-    'Dr. Amara Okafor','Dr. James Whitfield','Dr. Hannah Lee','Dr. Robert Mensah',
-    'Dr. Sofia Andersson','Dr. Miguel Santos','Dr. Ayesha Khan','Dr. David Cohen',
-    'Dr. Lucia Moretti','Dr. Andre Baptiste','Dr. Mei Ling Chen','Dr. Jonas Weber',
-    'Dr. Fatou Diallo','Dr. Ivan Petrov','Dr. Sara Haddad','Dr. Tomas Silva',
-    'Dr. Nadia Rahman','Dr. Peter Novak','Dr. Amina Yusuf','Dr. George Peterson'
-  ],
-  'Cardiology': [
-    'Dr. Sarah Mitchell','Dr. Omar Haddad','Dr. Elena Vasquez','Dr. Kwame Boateng',
-    'Dr. Hiroshi Tanaka','Dr. Clara Fontaine','Dr. Rajesh Iyer','Dr. Marta Kowalski',
-    'Dr. Ahmed El-Sayed','Dr. Bianca Rossi','Dr. Lukas Meyer','Dr. Folake Adeyemi',
-    'Dr. Mateo Alvarez','Dr. Ingrid Johansson','Dr. Tariq Aziz','Dr. Camille Laurent',
-    'Dr. Stefan Mueller','Dr. Priyanka Desai','Dr. Gabriel Costa','Dr. Yasmine Farouk'
-  ],
-  'Pediatrics': [
-    'Dr. Elena Petrova','Dr. Priya Nair','Dr. Sofia Ramirez','Dr. Daniel Kim',
-    'Dr. Emma Wilson','Dr. Carlos Mendez','Dr. Amina Suleiman','Dr. Felix Wagner',
-    'Dr. Grace Kimani','Dr. Nina Ivanova','Dr. Oliver Hayes','Dr. Leila Nasser',
-    'Dr. Marco Ricci','Dr. Ananya Rao','Dr. Henrik Larsen','Dr. Zoe Papadopoulos',
-    'Dr. Samuel Ochieng','Dr. Valeria Cruz','Dr. Adam Kowalczyk','Dr. Rania Khalil'
-  ],
-  'Dermatology': [
-    'Dr. Marcus Chen','Dr. Layla Hassan','Dr. Thomas Berg','Dr. Isabella Romano',
-    'Dr. Kwesi Adjei','Dr. Anna Lindberg','Dr. Rahul Verma','Dr. Cecilia Vega',
-    'Dr. Dmitri Sokolov','Dr. Maya Friedman','Dr. Felipe Duarte','Dr. Sana Iqbal',
-    'Dr. Pieter Van Dijk','Dr. Amel Benali','Dr. Ricardo Fuentes','Dr. Hana Suzuki',
-    'Dr. Victor Adeoye','Dr. Eloise Martin','Dr. Karim Mansour','Dr. Julia Novotna'
-  ],
-  'Neurology': [
-    'Dr. Aisha Rahman','Dr. Viktor Novak','Dr. Grace Adeyemi','Dr. Ethan Caldwell',
-    'Dr. Chiara De Luca','Dr. Nikolai Orlov','Dr. Deepak Menon','Dr. Astrid Nielsen',
-    'Dr. Omar Bahri','Dr. Rebecca Stern','Dr. Tunde Balogun','Dr. Katarina Horvat',
-    'Dr. Javier Ortega','Dr. Lin Wei','Dr. Samuel Getachew','Dr. Petra Simon',
-    'Dr. Jonas Krause','Dr. Zainab Al-Rashid','Dr. Matej Kovac','Dr. Helena Marsh'
-  ],
-  'Orthopedics': [
-    'Dr. Michael Torres','Dr. Ingrid Olsen','Dr. Samuel Osei','Dr. Alexandra Petrov',
-    'Dr. Rafael Dominguez','Dr. Yuki Nakamura','Dr. Yusuf Abebe','Dr. Claire Moreau',
-    'Dr. Andrei Popescu',"Dr. Hannah O'Connell",'Dr. Malik Johnson','Dr. Freja Sorensen',
-    'Dr. Paulo Oliveira','Dr. Halima Bello','Dr. Georgios Papadakis','Dr. Maja Eriksen',
-    'Dr. Daniel Okoye','Dr. Rachel Goldstein','Dr. Emre Yilmaz','Dr. Marta Vidal'
-  ],
-  'Gynecology': [
-    'Dr. Fatima Al-Sayed','Dr. Rebecca Stone','Dr. Nadia Karim','Dr. Olivia Bennett',
-    'Dr. Carmen Jimenez','Dr. Lakshmi Pillai','Dr. Annelise Schmidt','Dr. Zainab Musa',
-    'Dr. Alessia Conti','Dr. Hauwa Mohammed','Dr. Elin Hedlund','Dr. Margaux Renaud',
-    'Dr. Esther Mwangi','Dr. Ioana Dobre','Dr. Aoife Byrne','Dr. Rosa Delgado',
-    'Dr. Nargis Rahimi','Dr. Freya Andersen','Dr. Tatiana Volkova','Dr. Amal Osman'
-  ],
-  'Ophthalmology': [
-    'Dr. Kenji Watanabe','Dr. Clara Mendes','Dr. Arjun Malhotra','Dr. Elena Marchetti',
-    'Dr. Yousef Amin','Dr. Marlene Baumann','Dr. Paul Okonkwo','Dr. Chiara Marino',
-    'Dr. Erik Sundberg','Dr. Divya Raman','Dr. Tiago Alves','Dr. Mariama Sow',
-    'Dr. Jack Thompson','Dr. Leila Amrani','Dr. Mihai Kovacs','Dr. Maya Krishnan',
-    'Dr. Ole Hansen','Dr. Ruth Bekele','Dr. Andre Lefevre','Dr. Farida Zaman'
-  ],
-  'ENT': [
-    'Dr. Oliver Brandt','Dr. Maya Deshpande','Dr. Sebastian Vogel','Dr. Aminata Toure',
-    'Dr. Ryan Carter','Dr. Elena Sousa','Dr. Vikram Sethi','Dr. Marta Nowak',
-    'Dr. Femi Adebayo','Dr. Clara Jensen','Dr. Hamza Sheikh','Dr. Isabelle Girard',
-    'Dr. Diego Rivera','Dr. Greta Hoffmann','Dr. Omar Siddiqui','Dr. Lena Fischer',
-    'Dr. Kwabena Frimpong','Dr. Silvia Ramos','Dr. Arda Demir','Dr. Nicole Tran'
-  ],
-  'Psychiatry': [
-    'Dr. Jonathan Hale','Dr. Amira Zaidi','Dr. Matthew Webb','Dr. Celeste Fournier',
-    'Dr. Rohan Kapoor','Dr. Eleni Stavrou','Dr. Tobi Ogunlesi','Dr. Clara Hughes',
-    'Dr. Joaquin Rivas','Dr. Leah Cohen','Dr. Simon Keller','Dr. Alia Malik',
-    'Dr. Pedro Almeida','Dr. Nour Abdallah','Dr. Sven Lindgren','Dr. Tara Brennan',
-    'Dr. Kenan Yildiz','Dr. Zoya Mirza','Dr. Felix Hartmann','Dr. Salma Moussa'
-  ],
-  'Dentistry': [
-    'Dr. Lucas Ferreira','Dr. Chloe Dubois','Dr. Adrian Moldovan','Dr. Priya Anand',
-    'Dr. Nathan Brooks','Dr. Selin Aydin','Dr. Mohamed Farah','Dr. Giulia Esposito',
-    'Dr. Henrik Dahl','Dr. Mariam Kamara','Dr. Jason Reynolds','Dr. Milena Jovanovic',
-    'Dr. Carlos Tavares','Dr. Solveig Nilsson','Dr. Idris Bala','Dr. Victoria Lane',
-    'Dr. Ahmed Nur','Dr. Agnes Molnar','Dr. Rohit Chandra','Dr. Elsa Berger'
-  ],
-  'Endocrinology': [
-    'Dr. Anika Sharma','Dr. Peter Lindqvist','Dr. Julius Kariuki','Dr. Mariana Fonseca',
-    'Dr. Wei Zhang','Dr. Sigrid Nyberg','Dr. Ali Rezaei','Dr. Francesca Greco',
-    'Dr. Daniel Mutua','Dr. Hana Saleh','Dr. Magnus Holm','Dr. Paloma Herrera',
-    'Dr. Sergei Fedorov','Dr. Chiamaka Obi','Dr. Riya Patel','Dr. Anders Vik',
-    'Dr. Samira Nasr','Dr. Gregory Warner','Dr. Leilani Kealoha','Dr. Oscar Peralta'
-  ]
-};
-
-/* ---------- Services: expandable cards + footer deep links ---------- */
-function setCardOpen(card, open){
-  card.classList.toggle('open', open);
-  $('.sc-link', card).setAttribute('aria-expanded', String(open));
-  $('.sc-link span', card).textContent = open ? 'Show less' : 'Learn more';
-}
- $$('.service-card .sc-link').forEach(function(b){
-  b.addEventListener('click', function(){
-    const card = b.closest('.service-card');
-    setCardOpen(card, !card.classList.contains('open'));
-  });
-});
- $$('[data-service]').forEach(function(a){
-  a.addEventListener('click', function(e){
-    e.preventDefault();
-    const card = $$('.service-card')[+a.dataset.service];
-    $$('.service-card').forEach(function(c){ setCardOpen(c, c === card); });
-    card.scrollIntoView({ behavior: prefersReduced ? 'auto' : 'smooth', block: 'center' });
-  });
-});
-
-/* ---------- Legal placeholder links ---------- */
- $$('[data-info]').forEach(function(a){
-  a.addEventListener('click', function(e){
-    e.preventDefault();
-    toast('info', a.dataset.info, 'This document will be published before the platform\u2019s public release.');
-  });
-});
-})();
-</script>
+    </footer>
+    <script>
+        function toggleMobileMenu(open) { document.getElementById('mobileNav').classList.toggle('active', open); document.getElementById('mobileOverlay').classList.toggle('active', open); document.body.style.overflow = open ? 'hidden' : 'auto'; }
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleMobileMenu(false); });
+        document.querySelectorAll('.mobile-nav a').forEach(link => { link.addEventListener('click', () => toggleMobileMenu(false)); });
+        const revealElements = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('active'); } }); }, { threshold: 0.15 });
+        revealElements.forEach(el => observer.observe(el));
+        let seconds = 5076; setInterval(() => { if (seconds > 0) seconds--; const h = Math.floor(seconds / 3600); const m = Math.floor((seconds % 3600) / 60); const s = seconds % 60; const heroTimer = document.getElementById('hero-timer'); const medTimer = document.getElementById('med-timer'); const timeString = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; if (heroTimer) heroTimer.innerText = timeString; if (medTimer) medTimer.innerText = timeString; }, 1000);
+    </script>
 </body>
 </html>
