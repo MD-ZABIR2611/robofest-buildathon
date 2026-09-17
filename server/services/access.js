@@ -18,19 +18,21 @@ async function loadPatientProfile(userId) {
 function accessState(appointment, now = new Date()) {
   const start = new Date(appointment.appointment_start);
   const end = new Date(appointment.appointment_end);
-  if (now < start) return 'before';
-  if (now >= end) return 'after';
+  const chartOpen = new Date(start.getTime() - 15 * 60 * 1000);
+  const chartClose = new Date(end.getTime() + 7 * 24 * 60 * 60 * 1000);
+  if (now < chartOpen) return 'before';
+  if (now >= chartClose) return 'after';
   return 'during';
 }
 
 function accessMessage(state) {
   if (state === 'before') {
-    return 'Patient information will become available when your consultation begins.';
+    return 'The chart opens 15 minutes before the visit. You can then save notes and issue a prescription.';
   }
   if (state === 'after') {
-    return 'Your consultation access window has ended.';
+    return 'The documentation window for this visit has closed.';
   }
-  return 'Patient information available.';
+  return 'You can record this visit and issue a digital prescription.';
 }
 
 async function loadAppointmentForDoctor(appointmentId, doctorProfileId) {

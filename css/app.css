@@ -220,7 +220,8 @@ th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; colo
   cursor: pointer; min-width: 72px; text-align: left;
 }
 .date-chip[aria-pressed="true"] { background: var(--primary); color: #fff; border-color: var(--primary); }
-.date-chip.muted { opacity: 0.55; }
+.date-chip.muted, .date-chip:disabled { opacity: 0.45; cursor: not-allowed; }
+.slots { display: flex; flex-wrap: wrap; gap: 8px; }
 .slot {
   border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 8px 12px; cursor: pointer;
 }

@@ -1,7 +1,7 @@
 'use strict';
 
 const { query } = require('../utils/db');
-const { addMinutes, toTimeStamp } = require('../utils/time');
+const { addMinutes, toTimeStamp, fromClinicLocal, clinicDayOfWeek } = require('../utils/time');
 
 function parseDate(value) {
   const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -16,16 +16,10 @@ function parseDate(value) {
   return { year, month, day, stamp: `${match[1]}-${match[2]}-${match[3]}` };
 }
 
-function localDateParts(stamp) {
-  const [y, m, d] = stamp.split('-').map(Number);
-  return new Date(y, m - 1, d);
-}
-
 async function generateSlots(doctorId, dateStamp) {
   const parsed = parseDate(dateStamp);
   if (!parsed) return [];
-  const local = localDateParts(parsed.stamp);
-  const dayOfWeek = local.getDay();
+  const dayOfWeek = clinicDayOfWeek(parsed.stamp);
   const { rows: windows } = await query(
     `SELECT * FROM doctor_availability
      WHERE doctor_id = $1 AND day_of_week = $2 AND is_active = TRUE
@@ -45,8 +39,8 @@ async function generateSlots(doctorId, dateStamp) {
   for (const window of windows) {
     const [sh, sm] = String(window.start_time).split(':').map(Number);
     const [eh, em] = String(window.end_time).split(':').map(Number);
-    let cursor = new Date(local.getFullYear(), local.getMonth(), local.getDate(), sh, sm, 0, 0);
-    const end = new Date(local.getFullYear(), local.getMonth(), local.getDate(), eh, em, 0, 0);
+    let cursor = fromClinicLocal(parsed.stamp, sh, sm);
+    const end = fromClinicLocal(parsed.stamp, eh, em);
     const duration = Number(window.appointment_duration) || 30;
     while (addMinutes(cursor, duration) <= end) {
       const slotEnd = addMinutes(cursor, duration);

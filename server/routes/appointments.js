@@ -9,7 +9,9 @@ const { authenticate, requireRole } = require('../middleware/auth');
 const { audit } = require('../services/audit');
 const { notify } = require('../services/notify');
 const { generateSlots } = require('../services/slots');
+const { toDateStamp } = require('../utils/time');
 const { loadDoctorProfile, loadPatientProfile, describeAccess, requireConsultationWindow } = require('../services/access');
+const { issuePrescription } = require('../controllers/prescriptionController');
 
 const router = express.Router();
 
@@ -91,7 +93,7 @@ router.post(
       [doctor_id]
     );
     if (!doctor.rows[0]) fail(400, 'INVALID', 'This doctor is not available for booking.');
-    const dateStamp = `${startAt.getFullYear()}-${String(startAt.getMonth() + 1).padStart(2, '0')}-${String(startAt.getDate()).padStart(2, '0')}`;
+    const dateStamp = toDateStamp(startAt);
     const slots = await generateSlots(doctor_id, dateStamp);
     const match = slots.find((slot) => new Date(slot.start).getTime() === startAt.getTime());
     if (!match) {
@@ -266,7 +268,7 @@ router.post(
     if (Number.isNaN(startAt.getTime()) || startAt <= new Date()) {
       fail(400, 'INVALID', 'Please choose a valid future appointment time.');
     }
-    const dateStamp = `${startAt.getFullYear()}-${String(startAt.getMonth() + 1).padStart(2, '0')}-${String(startAt.getDate()).padStart(2, '0')}`;
+    const dateStamp = toDateStamp(startAt);
     const slots = await generateSlots(appointment.doctor_id, dateStamp);
     const match = slots.find((slot) => new Date(slot.start).getTime() === startAt.getTime());
     if (!match) {
@@ -303,6 +305,33 @@ router.post(
     );
     await audit(req, 'START_CONSULTATION', 'appointment', appointment.id);
     res.json({ success: true, data: { appointment: rows[0] } });
+  })
+);
+
+router.post(
+  '/:id/prescriptions',
+  requireRole('doctor'),
+  asyncHandler(async (req, res) => {
+    const { appointment } = await requireConsultationWindow(req.params.id, req.user.id);
+    const existing = await query(`SELECT id FROM consultations WHERE appointment_id = $1`, [appointment.id]);
+    let consultationId = existing.rows[0]?.id;
+    if (!consultationId) {
+      const inserted = await query(
+        `INSERT INTO consultations (appointment_id, patient_id, doctor_id, diagnosis, doctor_notes)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
+        [
+          appointment.id,
+          appointment.patient_id,
+          appointment.doctor_id,
+          req.body?.diagnosis || null,
+          req.body?.notes || null
+        ]
+      );
+      consultationId = inserted.rows[0].id;
+    }
+    const prescription = await issuePrescription(req, consultationId, req.body);
+    res.status(201).json({ success: true, data: { prescription } });
   })
 );
 

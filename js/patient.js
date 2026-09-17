@@ -60,8 +60,12 @@ async function dashboard() {
         </article>
       </div>
       <div class="list card-stack">
-        ${appts.map((row) => `<div class="item"><div><strong>${h(row.doctor_name)}</strong><div class="tiny">${formatWhen(row.appointment_start)} · ${h(row.type)}</div></div>${badge(row.status)}</div>`).join('') || '<div class="empty">No appointments to show.</div>'}
-      </div>`;
+        ${appts.map((row) => `<a class="item" href="${hrefTo('patient/appointments.html')}">
+          <div><strong>${h(row.doctor_name)}</strong><div class="tiny">${formatWhen(row.appointment_start)} · ${h(row.type)}</div></div>
+          ${badge(row.status)}
+        </a>`).join('') || `<div class="empty">No upcoming visits. <a href="${hrefTo('patient/book-appointment.html')}">Book an appointment</a></div>`}
+      </div>
+      <p class="actions"><a class="btn" href="${hrefTo('patient/book-appointment.html')}">Book a visit</a></p>`;
     const countdown = document.getElementById('medCountdown');
     if (countdown && next) {
       if (window.__medTimer) clearInterval(window.__medTimer);
@@ -86,33 +90,107 @@ async function dashboard() {
 
 async function appointments() {
   const data = await api('/api/appointments');
-  qs('content').innerHTML = data.items.length ? data.items.map((row) => `
-    <div class="item">
+  const now = Date.now();
+  const items = data.items || [];
+  const upcoming = items.filter((row) => new Date(row.appointment_end || row.appointment_start).getTime() >= now && !['cancelled', 'no_show'].includes(row.status));
+  const past = items.filter((row) => !upcoming.includes(row));
+  function rowHtml(row) {
+    const open = ['scheduled', 'confirmed'].includes(row.status) && new Date(row.appointment_start).getTime() > now;
+    return `
+    <article class="item">
       <div>
-        <strong>${row.doctor_name}</strong>
-        <div class="tiny">${row.specialization} · ${formatWhen(row.appointment_start)}</div>
-        <div class="tiny">${row.reason || 'Consultation'}</div>
+        <strong>${h(row.doctor_name)}</strong>
+        <div class="tiny">${h(row.specialization || '')} · ${h(row.type || 'Video')} · ${formatWhen(row.appointment_start)}</div>
+        <div class="tiny">${h(row.reason || 'Consultation')}</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div class="row-actions">
         ${badge(row.status)}
-        ${['scheduled','confirmed'].includes(row.status) ? `<button class="btn-secondary" data-cancel="${row.id}">Cancel</button>` : ''}
+        ${open ? `<button class="btn-outline" type="button" data-reschedule="${row.id}" data-doctor="${h(row.doctor_id)}">Reschedule</button>` : ''}
+        ${open ? `<button class="btn-secondary" type="button" data-cancel="${row.id}">Cancel</button>` : ''}
       </div>
-    </div>`).join('') : '<div class="empty">You have no appointments yet.</div>';
-  qs('content').addEventListener('click', async (event) => {
-    const id = event.target.dataset.cancel;
-    if (!id) return;
+    </article>`;
+  }
+  qs('content').innerHTML = `
+    <p class="actions"><a class="btn" href="${hrefTo('patient/book-appointment.html')}">Book a visit</a></p>
+    <div class="card" id="rescheduleCard" hidden>
+      <h3>Reschedule visit</h3>
+      <p class="tiny" id="rescheduleHint">Choose a new clinic time. Hours are shown in Bangladesh time.</p>
+      <div class="form-row">
+        <div class="field"><label for="rescheduleDate">Date</label><input id="rescheduleDate" type="date"></div>
+      </div>
+      <div id="rescheduleSlots" class="slots"></div>
+      <p id="rescheduleAlert" class="alert danger hidden" role="alert"></p>
+    </div>
+    <h3>Upcoming</h3>
+    <div class="list">${upcoming.map(rowHtml).join('') || '<div class="empty">No upcoming appointments.</div>'}</div>
+    <h3>Earlier visits</h3>
+    <div class="list">${past.map(rowHtml).join('') || '<div class="empty">No earlier visits.</div>'}</div>`;
+  let rescheduleId = '';
+  const dateInput = qs('rescheduleDate');
+  async function loadRescheduleSlots() {
+    const doctorId = dateInput.dataset.doctor;
+    const date = dateInput.value;
+    qs('rescheduleSlots').innerHTML = '<p class="tiny">Loading times.</p>';
+    if (!doctorId || !date) return;
     try {
-      await api(`/api/appointments/${id}/cancel`, { method: 'POST', body: {} });
-      toast('Appointment cancelled.');
-      appointments();
-    } catch (err) { toast(err.message); }
-  });
+      const slots = await api(`/api/doctors/${doctorId}/slots?date=${date}`);
+      if (!slots.slots.length) {
+        qs('rescheduleSlots').innerHTML = '<p class="muted">No open times on this date. Try a weekday or Saturday morning.</p>';
+        return;
+      }
+      qs('rescheduleSlots').innerHTML = slots.slots.map((slot) => `<button type="button" class="slot" data-start="${slot.start}">${h(slot.label)}</button>`).join('');
+    } catch (err) {
+      qs('rescheduleSlots').innerHTML = `<p class="muted">${h(err.message)}</p>`;
+    }
+  }
+  qs('content').onclick = async (event) => {
+    const cancelId = event.target.dataset.cancel;
+    const rsId = event.target.dataset.reschedule;
+    const slotBtn = event.target.closest('.slot');
+    if (cancelId) {
+      try {
+        await api(`/api/appointments/${cancelId}/cancel`, { method: 'POST', body: {} });
+        toast('Appointment cancelled.');
+        appointments();
+      } catch (err) { toast(err.message); }
+      return;
+    }
+    if (rsId) {
+      rescheduleId = rsId;
+      const card = qs('rescheduleCard');
+      card.hidden = false;
+      dateInput.dataset.doctor = event.target.dataset.doctor;
+      const d = new Date();
+      d.setHours(12, 0, 0, 0);
+      d.setDate(d.getDate() + 1);
+      if (d.getDay() === 0) d.setDate(d.getDate() + 1);
+      dateInput.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      qs('rescheduleHint').textContent = 'Pick a new time, then the visit updates immediately.';
+      loadRescheduleSlots();
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (slotBtn && rescheduleId) {
+      try {
+        await api(`/api/appointments/${rescheduleId}/reschedule`, { method: 'POST', body: { start: slotBtn.dataset.start } });
+        toast('Appointment rescheduled.');
+        appointments();
+      } catch (err) {
+        const box = qs('rescheduleAlert');
+        box.textContent = err.message;
+        box.classList.remove('hidden');
+        toast(err.message);
+      }
+    }
+  };
+  dateInput.addEventListener('change', loadRescheduleSlots);
 }
 
 async function book() {
   const doctorId = new URLSearchParams(location.search).get('doctor');
   const doctors = await api('/api/doctors?limit=24');
-  const { h } = window.Medicare;
+  const list = doctors.items || [];
+  const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   function pad(n) { return String(n).padStart(2, '0'); }
   function isoLocal(d) {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -128,7 +206,7 @@ async function book() {
     return isoLocal(d);
   }
   const dateValue = nextOpenDate();
-  const doctorSelect = (doctors.items || []).map((d) => `<option value="${h(d.id)}" ${d.id === doctorId ? 'selected' : ''}>${h(d.name)} — ${h(d.specialization)}</option>`).join('');
+  const doctorSelect = list.map((d) => `<option value="${h(d.id)}" ${d.id === doctorId ? 'selected' : ''}>${h(d.name)} — ${h(d.specialization)}</option>`).join('');
   const chips = [];
   const chipStart = new Date();
   chipStart.setHours(12, 0, 0, 0);
@@ -138,22 +216,26 @@ async function book() {
     const stamp = isoLocal(d);
     const label = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
     const closed = d.getDay() === 0;
-    chips.push(`<button type="button" class="date-chip${closed ? ' muted' : ''}" data-date="${stamp}" aria-pressed="${stamp === dateValue ? 'true' : 'false'}">${h(label)}</button>`);
+    chips.push(`<button type="button" class="date-chip${closed ? ' muted' : ''}" data-date="${stamp}" ${closed ? 'disabled' : ''} aria-pressed="${stamp === dateValue ? 'true' : 'false'}">${h(label)}</button>`);
   }
-  const chosen = (doctors.items || []).find((d) => d.id === doctorId) || (doctors.items || [])[0];
+  if (!list.length) {
+    qs('content').innerHTML = `<div class="empty">No verified doctors are available to book. <a href="${hrefTo('doctors/index.html')}">Open the directory</a></div>`;
+    return;
+  }
   qs('content').innerHTML = `
     <form id="bookForm" class="card">
-      ${chosen ? `<p class="kicker">${h(chosen.specialization)}</p><h2 style="margin-top:0">${h(chosen.name)}</h2><p class="muted">${h(chosen.bio || 'Verified clinician')} · Fee ${h(chosen.consultation_fee)}</p>` : '<p class="muted">Choose a doctor from the directory.</p>'}
+      <div id="chosenHead"></div>
       <div class="field"><label for="doctor">Doctor</label>
-        <select id="doctor" name="doctor_id" required>${doctorSelect || '<option value="">No doctors available</option>'}</select></div>
+        <select id="doctor" name="doctor_id" required>${doctorSelect}</select></div>
+      <p class="tiny" id="hoursHint">Clinic times use Bangladesh hours. Sunday is closed. Saturday is morning only.</p>
       <div class="form-row">
-        <div class="field"><label for="date">Date</label><input id="date" type="date" required value="${dateValue}"></div>
+        <div class="field"><label for="date">Date</label><input id="date" type="date" required min="${dateValue}" value="${dateValue}"></div>
         <div class="field"><label for="type">Visit type</label>
           <select id="type"><option>Video</option><option>In-person</option></select></div>
       </div>
       <div class="field"><label>Quick dates</label><div id="dateChips" class="date-chips">${chips.join('')}</div></div>
       <div class="field"><label>Available times</label><div id="slots" class="slots"><p class="tiny">Loading times.</p></div></div>
-      <p class="tiny" id="slotHint">Times are 30-minute visits. Sunday is closed. Saturday is morning only.</p>
+      <p class="tiny" id="slotHint">Each visit is 30 minutes. Pick a time, then confirm.</p>
       <div class="field"><label for="reason">Reason</label><textarea id="reason" placeholder="What would you like to discuss?"></textarea></div>
       <p id="bookAlert" class="alert danger hidden" role="alert"></p>
       <button class="btn" type="submit" id="bookSubmit" disabled>Confirm appointment</button>
@@ -169,6 +251,28 @@ async function book() {
     }
     box.textContent = message;
     box.classList.remove('hidden');
+  }
+  function currentDoctor() {
+    return list.find((d) => d.id === qs('doctor').value) || list[0];
+  }
+  function renderHead() {
+    const chosen = currentDoctor();
+    qs('chosenHead').innerHTML = chosen
+      ? `<p class="kicker">${h(chosen.specialization)}</p><h2 style="margin-top:0">${h(chosen.name)}</h2><p class="muted">${h(chosen.bio || 'Verified clinician')} · Fee ${h(chosen.consultation_fee)}</p>`
+      : '<p class="muted">Choose a doctor from the directory.</p>';
+  }
+  async function loadHours() {
+    const id = qs('doctor').value;
+    if (!id) return;
+    try {
+      const data = await api(`/api/doctors/${id}`);
+      const windows = data.availability || [];
+      qs('hoursHint').textContent = windows.length
+        ? `Hours: ${windows.map((w) => `${DAYS[w.day_of_week]} ${String(w.start_time).slice(0, 5)}–${String(w.end_time).slice(0, 5)}`).join(' · ')}`
+        : 'Clinic hours are not posted yet. Try another clinician.';
+    } catch (_) {
+      qs('hoursHint').textContent = 'Clinic times use Bangladesh hours. Sunday is closed. Saturday is morning only.';
+    }
   }
   function markChip() {
     const date = qs('date').value;
@@ -197,12 +301,15 @@ async function book() {
     }
   }
   qs('doctor').addEventListener('change', () => {
-    location.href = `${hrefTo('patient/book-appointment.html')}?doctor=${encodeURIComponent(qs('doctor').value)}`;
+    history.replaceState({}, '', `${location.pathname}?doctor=${encodeURIComponent(qs('doctor').value)}`);
+    renderHead();
+    loadHours();
+    loadSlots();
   });
   qs('date').addEventListener('change', loadSlots);
   qs('dateChips').addEventListener('click', (event) => {
     const chip = event.target.closest('.date-chip');
-    if (!chip) return;
+    if (!chip || chip.disabled) return;
     qs('date').value = chip.dataset.date;
     loadSlots();
   });
@@ -220,18 +327,22 @@ async function book() {
       setAlert('Please choose an available time.');
       return toast('Please choose an available time.');
     }
+    qs('bookSubmit').disabled = true;
     try {
       await api('/api/appointments', {
         method: 'POST',
         body: { doctor_id: qs('doctor').value, start: selectedStart, type: qs('type').value, reason: qs('reason').value }
       });
-      toast('Appointment confirmed.');
+      toast('Appointment confirmed. Your clinician can open the chart and issue a prescription.');
       location.href = hrefTo('patient/appointments.html');
     } catch (err) {
+      qs('bookSubmit').disabled = false;
       setAlert(err.message);
       toast(err.message);
     }
   });
+  renderHead();
+  loadHours();
   loadSlots();
 }
 
