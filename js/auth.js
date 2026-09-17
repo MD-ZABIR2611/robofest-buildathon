@@ -70,7 +70,16 @@ if (loginForm) {
         method: 'POST',
         body: { email: loginForm.email.value, password: loginForm.password.value }
       });
-      location.href = window.Medicare.homeFor(data.user.role);
+      const rawNext = params.get('next');
+      let nextPath = '';
+      if (rawNext) {
+        try { nextPath = decodeURIComponent(rawNext); } catch { nextPath = rawNext; }
+      }
+      if (nextPath.startsWith('/') && !nextPath.startsWith('//') && !nextPath.includes('://')) {
+        location.href = nextPath;
+      } else {
+        location.href = window.Medicare.homeFor(data.user.role);
+      }
     } catch (err) {
       showAuthMessage(err.message, true);
     }

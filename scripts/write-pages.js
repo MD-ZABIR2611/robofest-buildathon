@@ -127,7 +127,7 @@ write('doctors/index.html', `<!doctype html>
         <input id="q" name="q" placeholder="Name or specialty">
       </form>
     </div>
-    <p class="tiny">Booking opens the patient book page: <a href="${rel('doctors/index.html', 'patient/book-appointment.html')}">book-appointment.html</a></p>
+    <p class="tiny">Clinic hours are Monday to Friday, 9:00–17:00, plus Saturday morning. Choose a doctor, then pick a time.</p>
     <div id="directory" class="grid-3"></div>
   </main>
 </body>

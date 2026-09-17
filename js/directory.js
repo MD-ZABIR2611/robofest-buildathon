@@ -23,7 +23,7 @@ async function load() {
         <p class="muted">${d.qualification || ''} · ${d.experience_years} years</p>
         <p>${d.bio || ''}</p>
         <p>${badge('verified')} · Consultation ${d.consultation_fee}</p>
-        <p><a class="btn" href="${window.Medicare.page('patient/book-appointment.html?doctor=' + d.id)}">View times and book</a></p>
+        <p><a class="btn" href="${window.Medicare.page('patient/book-appointment.html?doctor=' + d.id)}">Book a visit</a></p>
       </article>`).join('');
   } catch (err) {
     toast(err.message || 'Unable to load doctors.');

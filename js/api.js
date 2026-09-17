@@ -103,6 +103,13 @@ function loginFor(role) {
   return page('patient/login.html');
 }
 
+function loginWithReturn(role) {
+  const base = loginFor(role);
+  const next = `${location.pathname}${location.search}`;
+  const join = base.includes('?') ? '&' : '?';
+  return `${base}${join}next=${encodeURIComponent(next)}`;
+}
+
 function homeFor(role) {
   if (role === 'doctor') return page('doctor/dashboard.html');
   if (role === 'admin') return page('admin/dashboard.html');
@@ -143,7 +150,7 @@ async function requireRole(role) {
   try {
     const data = await api('/api/auth/me');
     if (!data.user) {
-      window.location.href = loginFor(role);
+      window.location.href = loginWithReturn(role);
       throw new Error('redirect');
     }
     if (data.user.role !== role) {
@@ -153,7 +160,7 @@ async function requireRole(role) {
     return data;
   } catch (err) {
     if (err.message === 'redirect') throw err;
-    window.location.href = loginFor(role);
+    window.location.href = loginWithReturn(role);
     throw new Error('redirect');
   }
 }

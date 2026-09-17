@@ -214,7 +214,13 @@ th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; colo
 .alert.warn { background: #fff7ed; color: #9a3412; }
 .alert.danger { background: #fef2f2; color: var(--danger); }
 .empty { padding: 28px; text-align: center; color: var(--muted); }
-.slots { display: flex; flex-wrap: wrap; gap: 8px; }
+.date-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+.date-chip {
+  border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 8px 10px;
+  cursor: pointer; min-width: 72px; text-align: left;
+}
+.date-chip[aria-pressed="true"] { background: var(--primary); color: #fff; border-color: var(--primary); }
+.date-chip.muted { opacity: 0.55; }
 .slot {
   border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 8px 12px; cursor: pointer;
 }

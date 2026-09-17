@@ -116,6 +116,12 @@ async function seed() {
         [id, day]
       );
     }
+    await query(
+      `INSERT INTO doctor_availability
+         (doctor_id, day_of_week, start_time, end_time, appointment_duration, appointment_type)
+       VALUES ($1, 6, '09:00', '13:00', 30, 'Video')`,
+      [id]
+    );
   }
 
   const patient = await query(`SELECT id FROM patient_profiles WHERE user_id = $1`, [patientUserId]);
@@ -130,6 +136,21 @@ async function seed() {
   const startPast = new Date(now.getTime() - 26 * 60 * 60000);
   const endPast = new Date(startPast.getTime() + 30 * 60000);
 
+  await query(
+    `DELETE FROM notifications WHERE user_id = $1 AND title LIKE 'Demo:%'`,
+    [patientUserId]
+  );
+  await query(
+    `DELETE FROM medical_history WHERE patient_id = $1 AND summary LIKE 'Demo:%'`,
+    [patientId]
+  );
+  await query(`DELETE FROM prescriptions WHERE patient_id = $1 AND notes LIKE 'Demo:%'`, [patientId]);
+  await query(
+    `DELETE FROM consultations WHERE appointment_id IN (
+       SELECT id FROM appointments WHERE patient_id = $1 AND reason LIKE 'Demo:%'
+     )`,
+    [patientId]
+  );
   await query(`DELETE FROM appointments WHERE patient_id = $1 AND reason LIKE 'Demo:%'`, [patientId]);
 
   async function insertAppt({ start, end, status, reason, doctor }) {

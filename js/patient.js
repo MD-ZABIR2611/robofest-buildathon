@@ -112,47 +112,114 @@ async function appointments() {
 async function book() {
   const doctorId = new URLSearchParams(location.search).get('doctor');
   const doctors = await api('/api/doctors?limit=24');
-  const doctorSelect = doctors.items.map((d) => `<option value="${d.id}" ${d.id === doctorId ? 'selected' : ''}>${d.name} — ${d.specialization}</option>`).join('');
-  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-  const dateValue = tomorrow.toISOString().slice(0, 10);
+  const { h } = window.Medicare;
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function isoLocal(d) {
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+  function nextOpenDate() {
+    const d = new Date();
+    d.setHours(12, 0, 0, 0);
+    d.setDate(d.getDate() + 1);
+    for (let i = 0; i < 14; i += 1) {
+      if (d.getDay() !== 0) return isoLocal(d);
+      d.setDate(d.getDate() + 1);
+    }
+    return isoLocal(d);
+  }
+  const dateValue = nextOpenDate();
+  const doctorSelect = (doctors.items || []).map((d) => `<option value="${h(d.id)}" ${d.id === doctorId ? 'selected' : ''}>${h(d.name)} — ${h(d.specialization)}</option>`).join('');
+  const chips = [];
+  const chipStart = new Date();
+  chipStart.setHours(12, 0, 0, 0);
+  for (let i = 1; i <= 10; i += 1) {
+    const d = new Date(chipStart);
+    d.setDate(chipStart.getDate() + i);
+    const stamp = isoLocal(d);
+    const label = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    const closed = d.getDay() === 0;
+    chips.push(`<button type="button" class="date-chip${closed ? ' muted' : ''}" data-date="${stamp}" aria-pressed="${stamp === dateValue ? 'true' : 'false'}">${h(label)}</button>`);
+  }
+  const chosen = (doctors.items || []).find((d) => d.id === doctorId) || (doctors.items || [])[0];
   qs('content').innerHTML = `
     <form id="bookForm" class="card">
+      ${chosen ? `<p class="kicker">${h(chosen.specialization)}</p><h2 style="margin-top:0">${h(chosen.name)}</h2><p class="muted">${h(chosen.bio || 'Verified clinician')} · Fee ${h(chosen.consultation_fee)}</p>` : '<p class="muted">Choose a doctor from the directory.</p>'}
       <div class="field"><label for="doctor">Doctor</label>
-        <select id="doctor" name="doctor_id" required>${doctorSelect}</select></div>
+        <select id="doctor" name="doctor_id" required>${doctorSelect || '<option value="">No doctors available</option>'}</select></div>
       <div class="form-row">
         <div class="field"><label for="date">Date</label><input id="date" type="date" required value="${dateValue}"></div>
         <div class="field"><label for="type">Visit type</label>
           <select id="type"><option>Video</option><option>In-person</option></select></div>
       </div>
-      <div class="field"><label>Available times</label><div id="slots" class="slots"><p class="tiny">Choose a date to load times.</p></div></div>
+      <div class="field"><label>Quick dates</label><div id="dateChips" class="date-chips">${chips.join('')}</div></div>
+      <div class="field"><label>Available times</label><div id="slots" class="slots"><p class="tiny">Loading times.</p></div></div>
+      <p class="tiny" id="slotHint">Times are 30-minute visits. Sunday is closed. Saturday is morning only.</p>
       <div class="field"><label for="reason">Reason</label><textarea id="reason" placeholder="What would you like to discuss?"></textarea></div>
-      <button class="btn" type="submit">Confirm appointment</button>
+      <p id="bookAlert" class="alert danger hidden" role="alert"></p>
+      <button class="btn" type="submit" id="bookSubmit" disabled>Confirm appointment</button>
     </form>`;
   let selectedStart = '';
+  function setAlert(message) {
+    const box = qs('bookAlert');
+    if (!box) return;
+    if (!message) {
+      box.classList.add('hidden');
+      box.textContent = '';
+      return;
+    }
+    box.textContent = message;
+    box.classList.remove('hidden');
+  }
+  function markChip() {
+    const date = qs('date').value;
+    qs('dateChips').querySelectorAll('.date-chip').forEach((el) => {
+      el.setAttribute('aria-pressed', el.dataset.date === date ? 'true' : 'false');
+    });
+  }
   async function loadSlots() {
     const id = qs('doctor').value;
     const date = qs('date').value;
+    selectedStart = '';
+    qs('bookSubmit').disabled = true;
+    markChip();
     if (!id || !date) return;
+    qs('slots').innerHTML = '<p class="tiny">Loading times.</p>';
     try {
       const data = await api(`/api/doctors/${id}/slots?date=${date}`);
-      qs('slots').innerHTML = data.slots.length
-        ? data.slots.map((slot) => `<button type="button" class="slot" data-start="${slot.start}">${slot.label}</button>`).join('')
-        : '<p class="muted">No open times on this date.</p>';
+      if (data.slots.length) {
+        qs('slots').innerHTML = data.slots.map((slot) => `<button type="button" class="slot" data-start="${slot.start}">${h(slot.label)}</button>`).join('');
+        setAlert('');
+      } else {
+        qs('slots').innerHTML = '<p class="muted">No open times on this date. Try a weekday, or Saturday morning.</p>';
+      }
     } catch (err) {
-      qs('slots').innerHTML = `<p class="muted">${err.message || 'Unable to load doctors.'}</p>`;
+      qs('slots').innerHTML = `<p class="muted">${h(err.message || 'Unable to load times.')}</p>`;
     }
   }
-  qs('doctor').addEventListener('change', loadSlots);
+  qs('doctor').addEventListener('change', () => {
+    location.href = `${hrefTo('patient/book-appointment.html')}?doctor=${encodeURIComponent(qs('doctor').value)}`;
+  });
   qs('date').addEventListener('change', loadSlots);
+  qs('dateChips').addEventListener('click', (event) => {
+    const chip = event.target.closest('.date-chip');
+    if (!chip) return;
+    qs('date').value = chip.dataset.date;
+    loadSlots();
+  });
   qs('slots').addEventListener('click', (event) => {
     const btn = event.target.closest('.slot');
     if (!btn) return;
     selectedStart = btn.dataset.start;
+    qs('bookSubmit').disabled = false;
+    setAlert('');
     qs('slots').querySelectorAll('.slot').forEach((el) => el.setAttribute('aria-pressed', el === btn ? 'true' : 'false'));
   });
   qs('bookForm').addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!selectedStart) return toast('Please choose an available time.');
+    if (!selectedStart) {
+      setAlert('Please choose an available time.');
+      return toast('Please choose an available time.');
+    }
     try {
       await api('/api/appointments', {
         method: 'POST',
@@ -160,7 +227,10 @@ async function book() {
       });
       toast('Appointment confirmed.');
       location.href = hrefTo('patient/appointments.html');
-    } catch (err) { toast(err.message); }
+    } catch (err) {
+      setAlert(err.message);
+      toast(err.message);
+    }
   });
   loadSlots();
 }
