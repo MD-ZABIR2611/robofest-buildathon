@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-label="MediCare+ database relationships">
+  <rect width="1920" height="1080" fill="#f3efe6"/>
+  <text x="80" y="64" font-family="Palatino, serif" font-size="36" fill="#1b2a24">MediCare+ database</text>
+  <text x="80" y="96" font-family="Segoe UI, sans-serif" font-size="16" fill="#5d6b64">Core entities from the approved plan, plus email verification / reset tokens</text>
+
+  <g font-family="Segoe UI, sans-serif" font-size="15">
+    <rect x="820" y="120" width="260" height="70" rx="14" fill="#0f5f52"/>
+    <text x="910" y="162" fill="#fff" font-size="20">Users</text>
+
+    <rect x="280" y="260" width="240" height="64" rx="14" fill="#fffdf8" stroke="#0f5f52"/>
+    <text x="320" y="300">Patient Profiles</text>
+    <rect x="1360" y="260" width="240" height="64" rx="14" fill="#14352e"/>
+    <text x="1400" y="300" fill="#fff">Doctor Profiles</text>
+
+    <rect x="1360" y="380" width="240" height="64" rx="14" fill="#fffdf8" stroke="#d8d0c2"/>
+    <text x="1390" y="420">Doctor Availability</text>
+
+    <rect x="820" y="500" width="260" height="70" rx="14" fill="#0f5f52"/>
+    <text x="880" y="542" fill="#fff" font-size="20">Appointments</text>
+
+    <rect x="820" y="630" width="260" height="60" rx="14" fill="#fffdf8" stroke="#d8d0c2"/>
+    <text x="890" y="668">Consultations</text>
+    <rect x="820" y="740" width="260" height="60" rx="14" fill="#fffdf8" stroke="#d8d0c2"/>
+    <text x="895" y="778">Prescriptions</text>
+    <rect x="820" y="850" width="260" height="60" rx="14" fill="#fffdf8" stroke="#d8d0c2"/>
+    <text x="850" y="888">Prescription Medicines</text>
+    <rect x="430" y="850" width="240" height="60" rx="14" fill="#fffdf8" stroke="#d8d0c2"/>
+    <text x="455" y="888">Medication Schedules</text>
+    <rect x="1200" y="850" width="220" height="60" rx="14" fill="#fffdf8" stroke="#d8d0c2"/>
+    <text x="1245" y="888">Notifications</text>
+
+    <rect x="80" y="500" width="220" height="60" rx="14" fill="#fffdf8" stroke="#d8d0c2"/>
+    <text x="115" y="538">Medical History</text>
+    <rect x="80" y="120" width="220" height="60" rx="14" fill="#fffdf8" stroke="#d8d0c2"/>
+    <text x="140" y="158">Audit Logs</text>
+    <rect x="1600" y="120" width="220" height="60" rx="14" fill="#fffdf8" stroke="#d8d0c2"/>
+    <text x="1635" y="158">Email Tokens</text>
+  </g>
+
+  <g stroke="#0f5f52" stroke-width="1.6" fill="none">
+    <path d="M950 190 V240 H400 V260"/>
+    <path d="M950 190 V240 H1480 V260"/>
+    <path d="M1480 324 V380"/>
+    <path d="M400 324 V535 H820"/>
+    <path d="M1480 444 V535 H1080"/>
+    <path d="M950 570 V630"/>
+    <path d="M950 690 V740"/>
+    <path d="M950 800 V850"/>
+    <path d="M820 880 H670"/>
+    <path d="M1080 880 H1200"/>
+    <path d="M400 324 V500 H300"/>
+    <path d="M820 155 H300"/>
+    <path d="M1080 155 H1600"/>
+  </g>
+  <g fill="#0f5f52">
+    <polygon points="400,260 394,248 406,248"/>
+    <polygon points="1480,260 1474,248 1486,248"/>
+    <polygon points="1480,380 1474,368 1486,368"/>
+    <polygon points="820,535 808,529 808,541"/>
+    <polygon points="1080,535 1092,529 1092,541"/>
+    <polygon points="950,630 944,618 956,618"/>
+    <polygon points="950,740 944,728 956,728"/>
+    <polygon points="950,850 944,838 956,838"/>
+    <polygon points="670,880 682,874 682,886"/>
+    <polygon points="1200,880 1188,874 1188,886"/>
+    <polygon points="300,500 294,488 306,488"/>
+    <polygon points="300,155 312,149 312,161"/>
+    <polygon points="1600,155 1588,149 1588,161"/>
+  </g>
+  <text x="80" y="1040" font-family="Segoe UI, sans-serif" font-size="14" fill="#5d6b64">Users 1:1 Patient Profile · Users 1:1 Doctor Profile · Appointment is the authorization pivot for consultations and prescriptions.</text>
+</svg>

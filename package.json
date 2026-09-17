@@ -1,0 +1,33 @@
+{
+  "name": "medicare-plus",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MediCare+ — healthcare, organized around you.",
+  "main": "server/server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node --watch server/server.js",
+    "migrate": "node database/migrations/run.js",
+    "seed": "node database/seed/seed.js",
+    "db:migrate": "node database/migrations/run.js",
+    "db:seed": "node database/seed/seed.js",
+    "db:reset": "node database/migrations/run.js && node database/seed/seed.js",
+    "inline:html": "node scripts/inline-html.js",
+    "pages": "node scripts/write-pages.js && node scripts/inline-html.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.10.0",
+    "pg": "^8.13.3"
+  }
+}

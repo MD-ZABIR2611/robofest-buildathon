@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-label="MediCare+ sitemap and healthcare workflow">
+  <rect width="1920" height="1080" fill="#f3efe6"/>
+  <text x="80" y="70" font-family="Palatino, serif" font-size="36" fill="#1b2a24">MediCare+ architecture</text>
+  <text x="80" y="104" font-family="Segoe UI, sans-serif" font-size="16" fill="#5d6b64">Same pages, same workflow  implementation view for presentation</text>
+
+  <rect x="60" y="140" width="900" height="880" rx="24" fill="#fffdf8" stroke="#d8d0c2"/>
+  <text x="90" y="185" font-family="Segoe UI, sans-serif" font-size="14" letter-spacing="3" fill="#0f5f52">WEBSITE / SITEMAP</text>
+  <rect x="90" y="210" width="220" height="48" rx="12" fill="#0f5f52"/>
+  <text x="110" y="240" font-family="Segoe UI, sans-serif" font-size="18" fill="#fff">index.html</text>
+
+  <g font-family="Segoe UI, sans-serif" font-size="15" fill="#1b2a24">
+    <rect x="90" y="290" width="250" height="430" rx="16" fill="#dceee8"/>
+    <text x="110" y="320" font-weight="700">Patient</text>
+    <text x="110" y="350">login.html</text>
+    <text x="110" y="378">register.html</text>
+    <text x="110" y="406">dashboard.html</text>
+    <text x="110" y="434">appointments.html</text>
+    <text x="110" y="462">book-appointment.html</text>
+    <text x="110" y="490">prescriptions.html</text>
+    <text x="110" y="518">medications.html</text>
+    <text x="110" y="546">medical-history.html</text>
+    <text x="110" y="574">notifications.html</text>
+    <text x="110" y="602">profile.html</text>
+    <text x="110" y="630">settings.html</text>
+
+    <rect x="370" y="290" width="250" height="320" rx="16" fill="#e8f1ee"/>
+    <text x="390" y="320" font-weight="700">Doctor</text>
+    <text x="390" y="350">login.html</text>
+    <text x="390" y="378">register.html</text>
+    <text x="390" y="406">dashboard.html</text>
+    <text x="390" y="434">appointments.html</text>
+    <text x="390" y="462">consultation.html</text>
+    <text x="390" y="490">prescriptions.html</text>
+    <text x="390" y="518">profile.html</text>
+
+    <rect x="650" y="290" width="250" height="110" rx="16" fill="#fff"/>
+    <text x="670" y="320" font-weight="700">Doctors</text>
+    <text x="670" y="350">index.html</text>
+
+    <rect x="650" y="430" width="250" height="180" rx="16" fill="#fff"/>
+    <text x="670" y="460" font-weight="700">Information</text>
+    <text x="670" y="490">how-it-works.html</text>
+    <text x="670" y="518">security.html</text>
+    <text x="670" y="546">privacy.html</text>
+    <text x="670" y="574">terms.html</text>
+  </g>
+
+  <rect x="1000" y="140" width="860" height="880" rx="24" fill="#fffdf8" stroke="#d8d0c2"/>
+  <text x="1030" y="185" font-family="Segoe UI, sans-serif" font-size="14" letter-spacing="3" fill="#0f5f52">HEALTHCARE WORKFLOW</text>
+  <g font-family="Segoe UI, sans-serif" font-size="18" fill="#1b2a24">
+    <rect x="1180" y="220" width="500" height="54" rx="14" fill="#dceee8"/><text x="1210" y="254">Patient login</text>
+    <path d="M1430 274 v22" stroke="#0f5f52" stroke-width="2" fill="none"/><path d="M1424 290 l6 10 6-10" fill="#0f5f52"/>
+    <rect x="1180" y="300" width="500" height="54" rx="14" fill="#dceee8"/><text x="1210" y="334">Find doctor</text>
+    <path d="M1430 354 v22" stroke="#0f5f52" stroke-width="2" fill="none"/><path d="M1424 370 l6 10 6-10" fill="#0f5f52"/>
+    <rect x="1180" y="380" width="500" height="54" rx="14" fill="#dceee8"/><text x="1210" y="414">Book appointment</text>
+    <path d="M1430 434 v22" stroke="#0f5f52" stroke-width="2" fill="none"/><path d="M1424 450 l6 10 6-10" fill="#0f5f52"/>
+    <rect x="1180" y="460" width="500" height="54" rx="14" fill="#14352e"/><text x="1210" y="494" fill="#fff">Doctor appointment</text>
+    <path d="M1430 514 v22" stroke="#0f5f52" stroke-width="2" fill="none"/><path d="M1424 530 l6 10 6-10" fill="#0f5f52"/>
+    <rect x="1180" y="540" width="500" height="54" rx="14" fill="#14352e"/><text x="1210" y="574" fill="#fff">Authorized consultation</text>
+    <path d="M1430 594 v22" stroke="#0f5f52" stroke-width="2" fill="none"/><path d="M1424 610 l6 10 6-10" fill="#0f5f52"/>
+    <rect x="1180" y="620" width="500" height="54" rx="14" fill="#dceee8"/><text x="1210" y="654">Prescription</text>
+    <path d="M1430 674 v22" stroke="#0f5f52" stroke-width="2" fill="none"/><path d="M1424 690 l6 10 6-10" fill="#0f5f52"/>
+    <rect x="1180" y="700" width="500" height="54" rx="14" fill="#dceee8"/><text x="1210" y="734">Automatic medication schedule</text>
+    <path d="M1430 754 v22" stroke="#0f5f52" stroke-width="2" fill="none"/><path d="M1424 770 l6 10 6-10" fill="#0f5f52"/>
+    <rect x="1180" y="780" width="500" height="54" rx="14" fill="#dceee8"/><text x="1210" y="814">Medication reminder</text>
+    <path d="M1430 834 v22" stroke="#0f5f52" stroke-width="2" fill="none"/><path d="M1424 850 l6 10 6-10" fill="#0f5f52"/>
+    <rect x="1180" y="860" width="500" height="54" rx="14" fill="#dceee8"/><text x="1210" y="894">Medical history</text>
+  </g>
+  <text x="1030" y="980" font-family="Segoe UI, sans-serif" font-size="14" fill="#5d6b64">Time-limited doctor access is enforced with server time, never the browser clock.</text>
+</svg>

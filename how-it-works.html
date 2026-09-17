@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MediCare+ — Healthcare, organized around you</title>
+  <title>How it works · MediCare+</title>
 
   <style data-medicare>
 :root {
@@ -263,7 +263,6 @@ th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; colo
   </style>
 </head>
 <body>
-  <a class="skip" href="#content">Skip to content</a>
   <header class="topnav">
     <a class="brand" href="./index.html"><span class="logo"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 5 3.4 7.7 7 9 3.6-1.3 7-4 7-9V6z"/></svg></span><span class="brand-mark">MediCare+</span></a>
     <button class="site-nav-toggle" type="button" id="navToggle" aria-expanded="false" aria-controls="primaryNav">Menu</button>
@@ -271,39 +270,28 @@ th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; colo
       <a href="./doctors/index.html">Find a doctor</a>
       <a href="./how-it-works.html">How it works</a>
       <a href="./security.html">Security</a>
-      <a class="btn hidden" id="dashboardLink" href="./patient/dashboard.html">Open my dashboard</a>
+      
       <a class="btn-outline" href="./patient/login.html">Patient login</a>
       <a class="btn" href="./doctor/login.html">Doctor login</a>
     </nav>
   </header>
-  <main id="content" class="hero">
-    <div>
-      <p class="kicker">Premium healthcare, calmly organized</p>
-      <h1>From booking to daily doses, in one place.</h1>
-      <p class="lede">Patients and doctors each have their own workspace. Sign in and you are taken to the right dashboard automatically.</p>
-      <p class="actions">
-        <a class="btn" href="./patient/register.html">Create a patient account</a>
-        <a class="btn-outline" href="./patient/login.html">Patient login</a>
-        <a class="btn-outline" href="./doctor/login.html">Doctor login</a>
-      </p>
-    </div>
-    <aside class="hero-card">
-      <p class="kicker">Connected pages</p>
-      <h2>Move through the product with simple links.</h2>
-      <p><a href="./doctors/index.html">Browse doctors</a></p>
-      <p><a href="./patient/book-appointment.html">Book an appointment</a> (after patient login)</p>
-      <p><a href="./how-it-works.html">How it works</a> · <a href="./security.html">Security</a></p>
-    </aside>
-  </main>
-  <section class="section grid-3">
-    <article class="card"><h3>Patients</h3><p class="muted">Appointments, prescriptions, medications, history, and reminders.</p><p><a href="./patient/login.html">Go to patient login</a></p></article>
-    <article class="card"><h3>Doctors</h3><p class="muted">Consultations, time-limited access, and digital prescriptions.</p><p><a href="./doctor/login.html">Go to doctor login</a></p></article>
-    <article class="card"><h3>Directory</h3><p class="muted">Only verified clinicians are bookable.</p><p><a href="./doctors/index.html">Open doctor directory</a></p></article>
-  </section>
-  <footer class="footer">
-    <span>MediCare+</span>
-    <span><a href="./privacy.html">Privacy</a> · <a href="./terms.html">Terms</a> · <a href="./security.html">Security</a></span>
-  </footer>
+  <main class="section">
+  <p class="kicker">Workflow</p>
+  <h1>From first visit to daily doses</h1>
+  <p class="lede">The same links you see in the header are the real files in this project.</p>
+  <p class="actions">
+    <a class="btn" href="./patient/register.html">Start as a patient</a>
+    <a class="btn-outline" href="./doctor/register.html">Apply as a doctor</a>
+  </p>
+  <ol class="grid-2" style="padding:0;list-style:decimal inside">
+    <li class="card">Register and verify email</li>
+    <li class="card">Find a verified doctor</li>
+    <li class="card">Book a generated slot</li>
+    <li class="card">Consult in the time window</li>
+    <li class="card">Receive a digital prescription</li>
+    <li class="card">Follow the auto-built medication schedule</li>
+  </ol></main>
+  <footer class="footer"><a href="./index.html">Home</a></footer>
 
 <script data-medicare>
 (function () {
