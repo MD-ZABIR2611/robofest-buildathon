@@ -219,8 +219,8 @@ authPage('doctor/register.html', 'doctor-register', 'Clinician', 'Clinician appl
     <div class="field"><label>Qualification</label><input name="qualification"></div>
     <div class="field"><label>Years of experience</label><input name="experience_years" type="number" min="0"></div>
     <div class="field"><label>Bio</label><textarea name="bio"></textarea></div>
-    <button class="btn" type="submit">Submit application</button>
-    <p class="tiny">Then <a href="${rel('doctor/register.html', 'doctor/login.html')}">sign in</a>.</p>
+    <button class="btn" type="submit">Create clinician account</button>
+    <p class="tiny">After you register, patients can book you. Then <a href="${rel('doctor/register.html', 'doctor/login.html')}">sign in</a>.</p>
   </form>`);
 
 authPage('admin/login.html', 'admin-login', 'Operations', 'Admin sign in', `

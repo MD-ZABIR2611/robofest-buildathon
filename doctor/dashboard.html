@@ -222,7 +222,13 @@ th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; colo
 .alert.warn { background: #fff7ed; color: #9a3412; }
 .alert.danger { background: #fef2f2; color: var(--danger); }
 .empty { padding: 28px; text-align: center; color: var(--muted); }
-.slots { display: flex; flex-wrap: wrap; gap: 8px; }
+.date-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+.date-chip {
+  border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 8px 10px;
+  cursor: pointer; min-width: 72px; text-align: left;
+}
+.date-chip[aria-pressed="true"] { background: var(--primary); color: #fff; border-color: var(--primary); }
+.date-chip.muted { opacity: 0.55; }
 .slot {
   border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 8px 12px; cursor: pointer;
 }
@@ -385,6 +391,13 @@ function loginFor(role) {
   return page('patient/login.html');
 }
 
+function loginWithReturn(role) {
+  const base = loginFor(role);
+  const next = `${location.pathname}${location.search}`;
+  const join = base.includes('?') ? '&' : '?';
+  return `${base}${join}next=${encodeURIComponent(next)}`;
+}
+
 function homeFor(role) {
   if (role === 'doctor') return page('doctor/dashboard.html');
   if (role === 'admin') return page('admin/dashboard.html');
@@ -425,7 +438,7 @@ async function requireRole(role) {
   try {
     const data = await api('/api/auth/me');
     if (!data.user) {
-      window.location.href = loginFor(role);
+      window.location.href = loginWithReturn(role);
       throw new Error('redirect');
     }
     if (data.user.role !== role) {
@@ -435,7 +448,7 @@ async function requireRole(role) {
     return data;
   } catch (err) {
     if (err.message === 'redirect') throw err;
-    window.location.href = loginFor(role);
+    window.location.href = loginWithReturn(role);
     throw new Error('redirect');
   }
 }
@@ -516,7 +529,7 @@ async function dashboard() {
   const data = await api('/api/doctor/overview');
   qs('content').innerHTML = `
     <div class="alert ${data.profile.verification_status === 'verified' ? '' : 'warn'}">
-      Verification status: ${data.profile.verification_status}. Only verified clinicians appear in booking.
+      Verification status: ${data.profile.verification_status}. Verified clinicians appear in the patient booking list.
     </div>
     <div class="list">
       ${data.appointments.map((row) => `<a class="item" href="${hrefTo('doctor/consultation.html?id=' + row.id)}">

@@ -7,6 +7,7 @@ const { signUser, setAuthCookie, clearAuthCookie } = require('../middleware/auth
 const { audit } = require('../services/audit');
 const { sendMail, publicBase } = require('../services/mail');
 const { loadDoctorProfile, loadPatientProfile } = require('../services/access');
+const { makeDoctorBookable } = require('../services/clinicHours');
 
 function publicUser(user) {
   return {
@@ -131,7 +132,7 @@ async function registerDoctor(req, res) {
     await query(
       `INSERT INTO doctor_profiles
          (user_id, specialization, license_number, qualification, experience_years, bio, verification_status)
-       VALUES ($1, $2, $3, $4, $5, $6, 'pending')`,
+       VALUES ($1, $2, $3, $4, $5, $6, 'verified')`,
       [
         user.id,
         String(specialization || 'General Practice').trim(),
@@ -145,18 +146,19 @@ async function registerDoctor(req, res) {
     if (err.code === '23505') fail(409, 'EXISTS', 'An account with this email already exists.');
     throw err;
   }
+  await makeDoctorBookable(user.id);
   const token = await issueEmailToken(user.id, 'verify_email', 48);
   const verifyUrl = `${publicBase()}/doctor/login.html?verify=${token}`;
   await sendMail({
     to: user.email,
     subject: 'Verify your MediCare+ clinician email',
-    text: `Thank you for applying to MediCare+. Confirm your email: ${verifyUrl}. Your profile remains pending review until verification is complete.`
+    text: `Thank you for joining MediCare+. Confirm your email: ${verifyUrl}. Patients can book you during clinic hours.`
   });
   await completeSignupSession(
     res,
     user,
-    'Application received. You are signed in. Booking stays off until review.',
-    'Application received. Verify your email. Your profile will appear after review.',
+    'Account created. You are signed in and visible in patient booking.',
+    'Account created. Verify your email. You are visible in patient booking.',
     verifyUrl
   );
 }

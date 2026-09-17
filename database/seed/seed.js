@@ -321,6 +321,9 @@ async function seed() {
     );
   }
 
+  const { makeAllDoctorsBookable } = require('../../server/services/clinicHours');
+  await makeAllDoctorsBookable();
+
   console.log('Seed complete.');
   console.log('Patient:  patient@medicare.local /', DEMO_PASSWORD);
   console.log('Doctor:   doctor@medicare.local /', DEMO_PASSWORD);

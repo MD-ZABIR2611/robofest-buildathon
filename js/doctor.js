@@ -21,7 +21,7 @@ async function dashboard() {
   const data = await api('/api/doctor/overview');
   qs('content').innerHTML = `
     <div class="alert ${data.profile.verification_status === 'verified' ? '' : 'warn'}">
-      Verification status: ${data.profile.verification_status}. Only verified clinicians appear in booking.
+      Verification status: ${data.profile.verification_status}. Verified clinicians appear in the patient booking list.
     </div>
     <div class="list">
       ${data.appointments.map((row) => `<a class="item" href="${hrefTo('doctor/consultation.html?id=' + row.id)}">
