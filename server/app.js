@@ -29,9 +29,15 @@ app.use((req, res, next) => {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
   const origin = req.get('origin');
   const allowed = (process.env.CLIENT_URL || '').replace(/\/$/, '');
-  if (origin && allowed) {
+  if (origin) {
     const normalized = origin.replace(/\/$/, '');
-    if (normalized !== allowed) {
+    let sameHost = false;
+    try {
+      sameHost = new URL(origin).host === req.get('host');
+    } catch {
+      sameHost = false;
+    }
+    if (allowed && normalized !== allowed && !sameHost) {
       try {
         fail(403, 'CSRF', 'Request origin is not allowed.');
       } catch (err) {

@@ -26,6 +26,30 @@ function validatePassword(password) {
   return typeof password === 'string' && password.length >= 8 && password.length <= 72;
 }
 
+function mailConfigured() {
+  return Boolean(process.env.EMAIL_HOST);
+}
+
+async function completeSignupSession(res, user, verifiedMessage, verifyMessage, verifyUrl) {
+  if (!mailConfigured()) {
+    await query(`UPDATE users SET email_verified = TRUE, updated_at = NOW() WHERE id = $1`, [user.id]);
+    user.email_verified = true;
+    setAuthCookie(res, signUser(user));
+    return res.status(201).json({
+      success: true,
+      data: { user: publicUser(user), signed_in: true, message: verifiedMessage }
+    });
+  }
+  return res.status(201).json({
+    success: true,
+    data: {
+      user: publicUser(user),
+      message: verifyMessage,
+      verify_url: process.env.NODE_ENV === 'development' ? verifyUrl : undefined
+    }
+  });
+}
+
 async function issueEmailToken(userId, purpose, hours) {
   const token = randomToken();
   await query(
@@ -77,14 +101,13 @@ async function registerPatient(req, res) {
     subject: 'Verify your MediCare+ email',
     text: `Welcome to MediCare+. Confirm your email using this link: ${verifyUrl}`
   });
-  res.status(201).json({
-    success: true,
-    data: {
-      user: publicUser(user),
-      message: 'Account created. Please verify your email to continue.',
-      verify_url: process.env.NODE_ENV === 'development' ? verifyUrl : undefined
-    }
-  });
+  await completeSignupSession(
+    res,
+    user,
+    'Account created. You are signed in.',
+    'Account created. Please verify your email to continue.',
+    verifyUrl
+  );
 }
 
 async function registerDoctor(req, res) {
@@ -129,14 +152,13 @@ async function registerDoctor(req, res) {
     subject: 'Verify your MediCare+ clinician email',
     text: `Thank you for applying to MediCare+. Confirm your email: ${verifyUrl}. Your profile remains pending review until verification is complete.`
   });
-  res.status(201).json({
-    success: true,
-    data: {
-      user: publicUser(user),
-      message: 'Application received. Verify your email. Your profile will appear after review.',
-      verify_url: process.env.NODE_ENV === 'development' ? verifyUrl : undefined
-    }
-  });
+  await completeSignupSession(
+    res,
+    user,
+    'Application received. You are signed in. Booking stays off until review.',
+    'Application received. Verify your email. Your profile will appear after review.',
+    verifyUrl
+  );
 }
 
 async function verifyEmail(req, res) {
@@ -188,7 +210,9 @@ async function login(req, res) {
     fail(401, 'INVALID_CREDENTIALS', 'Incorrect email or password.');
   }
   if (!user.is_active) fail(403, 'INACTIVE', 'This account is no longer active.');
-  if (!user.email_verified) fail(403, 'UNVERIFIED', 'Please verify your email before signing in.');
+  if (!user.email_verified && mailConfigured()) {
+    fail(403, 'UNVERIFIED', 'Please verify your email before signing in.');
+  }
   await query(`UPDATE users SET last_login_at = NOW() WHERE id = $1`, [user.id]);
   const token = signUser(user);
   setAuthCookie(res, token);

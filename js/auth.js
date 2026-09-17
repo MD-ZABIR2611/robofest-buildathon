@@ -10,9 +10,9 @@ async function handleVerify() {
   if (!token) return;
   try {
     await api('/api/auth/verify-email', { method: 'POST', body: { token } });
-    toast('Email verified. You can sign in now.');
+    showAuthMessage('Email verified. You can sign in now.', false);
   } catch (err) {
-    toast(err.message);
+    showAuthMessage(err.message, true);
   }
 }
 
@@ -45,6 +45,16 @@ if (document.getElementById('loginForm')) {
   }).catch(() => {});
 }
 
+function showAuthMessage(message, danger) {
+  const box = document.getElementById('authAlert');
+  if (box) {
+    box.textContent = message;
+    box.className = danger ? 'alert danger' : 'alert';
+    box.classList.remove('hidden');
+  }
+  toast(message);
+}
+
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
   loginForm.setAttribute('method', 'post');
@@ -58,7 +68,7 @@ if (loginForm) {
       });
       location.href = window.Medicare.homeFor(data.user.role);
     } catch (err) {
-      toast(err.message);
+      showAuthMessage(err.message, true);
     }
   });
 }
@@ -84,12 +94,16 @@ if (registerForm) {
     const path = page === 'doctor-register' ? '/api/auth/register-doctor' : '/api/auth/register-patient';
     try {
       const data = await api(path, { method: 'POST', body });
-      toast(data.message || 'Account created. Please verify your email.');
+      if (data.signed_in && data.user) {
+        location.href = window.Medicare.homeFor(data.user.role);
+        return;
+      }
+      showAuthMessage(data.message || 'Account created. Please verify your email.', false);
       if (data.verify_url) {
         document.getElementById('devVerify').innerHTML = `<div class="alert">Development verification link: <a href="${data.verify_url}">verify email</a></div>`;
       }
     } catch (err) {
-      toast(err.message);
+      showAuthMessage(err.message, true);
     }
   });
 }

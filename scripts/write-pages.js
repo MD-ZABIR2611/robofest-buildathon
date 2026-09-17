@@ -152,7 +152,8 @@ authPage('patient/login.html', 'patient-login', 'Patient', 'Patient sign in', `
   <form id="loginForm" class="card" method="post" action="#">
     <p class="kicker">Patient</p>
     <h1>Sign in</h1>
-    <p class="tiny">This file links to the patient dashboard after a successful login.</p>
+    <p class="tiny">Gmail is not an account until you register. Use the email and password from <a href="${rel('patient/login.html', 'patient/register.html')}">Create a patient account</a>, or the demo patient login.</p>
+    <div id="authAlert" class="alert danger hidden" role="alert"></div>
     <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" required></div>
     <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" required></div>
     <button class="btn" type="submit">Continue to patient dashboard</button>
@@ -174,6 +175,7 @@ authPage('patient/register.html', 'patient-register', 'Patient', 'Patient regist
     <p class="kicker">Patient</p>
     <h1>Create your account</h1>
     <div id="devVerify"></div>
+    <div id="authAlert" class="alert danger hidden" role="alert"></div>
     <div class="field"><label>Full name</label><input name="name" required></div>
     <div class="field"><label>Email</label><input name="email" type="email" required></div>
     <div class="field"><label>Password</label><input name="password" type="password" minlength="8" required></div>
@@ -186,6 +188,7 @@ authPage('doctor/login.html', 'doctor-login', 'Clinician', 'Clinician sign in', 
     <p class="kicker">Clinician</p>
     <h1>Sign in</h1>
     <p class="tiny">This file links to the doctor dashboard after a successful login.</p>
+    <div id="authAlert" class="alert danger hidden" role="alert"></div>
     <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" required></div>
     <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" required></div>
     <button class="btn" type="submit">Continue to doctor dashboard</button>
@@ -207,6 +210,7 @@ authPage('doctor/register.html', 'doctor-register', 'Clinician', 'Clinician appl
     <p class="kicker">Clinician</p>
     <h1>Apply to practice</h1>
     <div id="devVerify"></div>
+    <div id="authAlert" class="alert danger hidden" role="alert"></div>
     <div class="field"><label>Full name</label><input name="name" required></div>
     <div class="field"><label>Email</label><input name="email" type="email" required></div>
     <div class="field"><label>Password</label><input name="password" type="password" minlength="8" required></div>
@@ -223,6 +227,7 @@ authPage('admin/login.html', 'admin-login', 'Operations', 'Admin sign in', `
   <form id="loginForm" class="card" method="post" action="#">
     <p class="kicker">Operations</p>
     <h1>Admin sign in</h1>
+    <div id="authAlert" class="alert danger hidden" role="alert"></div>
     <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" required></div>
     <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" required></div>
     <button class="btn" type="submit">Continue</button>
