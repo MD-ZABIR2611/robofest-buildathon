@@ -174,6 +174,132 @@ async function seed() {
     role: 'admin'
   });
 
+  const { generateSchedules } = require('../../server/services/medication');
+  const pastAppt = await query(
+    `SELECT id FROM appointments
+     WHERE patient_id = $1 AND reason = 'Demo: ended window'
+     ORDER BY appointment_start DESC LIMIT 1`,
+    [patientId]
+  );
+  if (pastAppt.rows[0]) {
+    await query(
+      `DELETE FROM notifications WHERE user_id = $1 AND title LIKE 'Demo:%'`,
+      [patientUserId]
+    );
+    await query(
+      `DELETE FROM medical_history WHERE patient_id = $1 AND summary LIKE 'Demo:%'`,
+      [patientId]
+    );
+    await query(
+      `DELETE FROM prescriptions WHERE patient_id = $1 AND notes LIKE 'Demo:%'`,
+      [patientId]
+    );
+    await query(`DELETE FROM consultations WHERE appointment_id = $1`, [pastAppt.rows[0].id]);
+
+    const consult = await query(
+      `INSERT INTO consultations
+         (appointment_id, patient_id, doctor_id, symptoms, chief_complaint, diagnosis, doctor_notes, treatment_plan, follow_up_instructions)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING id`,
+      [
+        pastAppt.rows[0].id,
+        patientId,
+        doctorC,
+        'Occasional headache and thirst',
+        'Routine chronic-care review',
+        'Type 2 diabetes mellitus; essential hypertension',
+        'Blood pressure 132/84. Continue current plan with closer home logging.',
+        'Metformin, amlodipine, and vitamin D as written.',
+        'Recheck labs in 12 weeks.'
+      ]
+    );
+    const consultationId = consult.rows[0].id;
+    const rx = await query(
+      `INSERT INTO prescriptions (consultation_id, patient_id, doctor_id, notes, status)
+       VALUES ($1, $2, $3, $4, 'active')
+       RETURNING id`,
+      [consultationId, patientId, doctorC, 'Demo: home medication plan']
+    );
+    const prescriptionId = rx.rows[0].id;
+    const meds = [
+      {
+        name: 'Metformin',
+        dosage: '500 mg',
+        frequency: 'twice daily',
+        duration: '7 days',
+        instructions: 'Take with meals'
+      },
+      {
+        name: 'Amlodipine',
+        dosage: '5 mg',
+        frequency: 'once daily',
+        duration: '7 days',
+        instructions: 'Take in the morning'
+      },
+      {
+        name: 'Vitamin D3',
+        dosage: '1000 IU',
+        frequency: 'once daily',
+        duration: '7 days',
+        instructions: 'Take with breakfast'
+      }
+    ];
+    for (const med of meds) {
+      const row = await query(
+        `INSERT INTO prescription_medicines
+           (prescription_id, medicine_name, dosage, frequency, duration, route, instructions)
+         VALUES ($1, $2, $3, $4, $5, 'oral', $6)
+         RETURNING id`,
+        [prescriptionId, med.name, med.dosage, med.frequency, med.duration, med.instructions]
+      );
+      await generateSchedules(
+        { query },
+        {
+          patientId,
+          medicineId: row.rows[0].id,
+          frequency: med.frequency,
+          duration: med.duration
+        }
+      );
+    }
+    const soon = new Date(Date.now() + 12 * 60000);
+    const soonDate = `${soon.getFullYear()}-${String(soon.getMonth() + 1).padStart(2, '0')}-${String(soon.getDate()).padStart(2, '0')}`;
+    const soonTime = `${String(soon.getHours()).padStart(2, '0')}:${String(soon.getMinutes()).padStart(2, '0')}:00`;
+    const firstMed = await query(
+      `SELECT id FROM prescription_medicines WHERE prescription_id = $1 ORDER BY created_at LIMIT 1`,
+      [prescriptionId]
+    );
+    if (firstMed.rows[0]) {
+      await query(
+        `INSERT INTO medication_schedules
+           (patient_id, prescription_medicine_id, scheduled_date, scheduled_time, status)
+         VALUES ($1, $2, $3, $4, 'upcoming')
+         ON CONFLICT (prescription_medicine_id, scheduled_date, scheduled_time) DO UPDATE SET status = 'upcoming'`,
+        [patientId, firstMed.rows[0].id, soonDate, soonTime]
+      );
+    }
+    const history = [
+      ['consultation', 'Demo: Follow-up for type 2 diabetes and hypertension. BP 132/84. Continue oral therapy.'],
+      ['allergy', 'Demo: Documented rash with penicillin. Avoid beta-lactam antibiotics unless supervised.'],
+      ['lab', 'Demo: HbA1c 7.1%. Fasting glucose 118 mg/dL. Repeat in 12 weeks.'],
+      ['prescription', 'Demo: Metformin 500 mg twice daily, amlodipine 5 mg daily, vitamin D3 1000 IU daily.']
+    ];
+    for (const [type, summary] of history) {
+      await query(
+        `INSERT INTO medical_history (patient_id, consultation_id, prescription_id, record_type, summary)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [patientId, consultationId, prescriptionId, type, summary]
+      );
+    }
+    await query(
+      `INSERT INTO notifications (user_id, type, title, message, resource_type, resource_id)
+       VALUES
+         ($1, 'prescription_available', 'Demo: New prescription', 'Metformin, amlodipine, and vitamin D were added to your medication timer.', 'prescription', $2),
+         ($1, 'medication_reminder', 'Demo: Next dose', 'Your next Metformin dose is on the medication timer.', 'prescription', $2)`,
+      [patientUserId, prescriptionId]
+    );
+  }
+
   console.log('Seed complete.');
   console.log('Patient:  patient@medicare.local /', DEMO_PASSWORD);
   console.log('Doctor:   doctor@medicare.local /', DEMO_PASSWORD);

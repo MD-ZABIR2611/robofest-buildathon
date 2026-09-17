@@ -40,8 +40,12 @@ handleVerify();
 handleResetForm();
 
 if (document.getElementById('loginForm')) {
+  const expected =
+    page === 'doctor-login' ? 'doctor' : page === 'admin-login' ? 'admin' : 'patient';
   window.Medicare.api('/api/auth/me').then((data) => {
-    if (data.user) location.replace(window.Medicare.homeFor(data.user.role));
+    if (data.user && data.user.role === expected) {
+      location.replace(window.Medicare.homeFor(data.user.role));
+    }
   }).catch(() => {});
 }
 
