@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediCare+ | Medication Reminders</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>➕</text></svg>" />
+    <style>
+        :root{--primary:#0d9488;--primary-hover:#0f766e;--primary-light:#ccfbf1;--bg-main:#f8fafc;--bg-dark:#0f172a;--surface:#ffffff;--text-primary:#0f172a;--text-secondary:#64748b;--border:#e2e8f0;--success:#16a34a;--success-light:#f0fdf4;--danger:#dc2626;--danger-light:#fef2f2;--radius-sm:10px;--radius-md:16px;--radius-lg:24px;--shadow-sm:0 2px 8px rgba(15,23,42,.04);--shadow-md:0 8px 30px rgba(15,23,42,.08);--transition:all .3s ease}
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',-apple-system,sans-serif}body{background:var(--bg-main);color:var(--text-primary);line-height:1.6}a{text-decoration:none;color:inherit}button{cursor:pointer;border:none;background:none}
+        .container{max-width:1100px;margin:0 auto;padding:0 1.5rem}
+        header{background:rgba(255,255,255,.8);backdrop-filter:blur(12px);box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:1000;border-bottom:1px solid var(--border)}.navbar{display:flex;justify-content:space-between;align-items:center;height:72px}.logo{font-weight:800;font-size:1.5rem;color:var(--primary-hover);display:flex;align-items:center;gap:.5rem}.logo span{color:var(--primary)}
+        .nav-links{display:flex;align-items:center;gap:.5rem}.nav-links a{font-weight:500;color:var(--text-secondary);transition:var(--transition);padding:.5rem .9rem;border-radius:var(--radius-sm);font-size:.95rem}.nav-links a:hover,.nav-links a.active{color:var(--primary-hover);background:var(--primary-light)}.nav-cta-group{display:flex;align-items:center;gap:1rem}
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.85rem 1.6rem;border-radius:var(--radius-sm);font-weight:600;transition:var(--transition);font-size:.95rem;cursor:pointer;border:none}.btn-primary{background:var(--primary);color:white}.btn-primary:hover{background:var(--primary-hover);transform:translateY(-2px)}.btn-outline{border:2px solid var(--border);color:var(--text-primary);background:transparent}.btn-outline:hover{border-color:var(--primary);color:var(--primary-hover);background:var(--primary-light)}
+        .mobile-menu-btn{display:none}.mobile-overlay{position:fixed;top:0;left:0;width:100%;height:100vh;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);z-index:999;opacity:0;visibility:hidden;transition:var(--transition)}.mobile-overlay.active{opacity:1;visibility:visible}.mobile-nav{position:fixed;top:0;right:-100%;width:80%;max-width:320px;height:100vh;background:var(--surface);z-index:1001;padding:2rem 1.5rem;transition:var(--transition);box-shadow:var(--shadow-md);overflow-y:auto}.mobile-nav.active{right:0}.mobile-nav a{display:block;padding:1rem 0;border-bottom:1px solid var(--border);color:var(--text-primary);font-weight:500}.close-mobile{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-secondary)}
+        .page-hero{background:var(--surface);padding:3rem 0 2rem;border-bottom:1px solid var(--border);margin-bottom:3rem}.page-hero h1{font-size:2.5rem;font-weight:700;margin-bottom:.5rem}.page-hero p{color:var(--text-secondary);font-size:1.1rem}
+        .alarm-banner{background:var(--danger);color:white;padding:1.25rem 1.5rem;border-radius:var(--radius-md);margin-bottom:2rem;display:none;align-items:center;gap:1rem;font-weight:600;font-size:1.1rem;box-shadow:0 4px 20px rgba(220,38,38,.3)}.alarm-banner.show{display:flex;animation:slideDown .3s ease}@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+        .med-list{display:flex;flex-direction:column;gap:1.5rem;padding-bottom:4rem}.med-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:2rem;transition:var(--transition);display:flex;justify-content:space-between;align-items:center}
+        .med-card.alarm-active{border:2px solid var(--danger);background:var(--danger-light);animation:pulse 1.5s infinite}.med-card.taken{opacity:.6;background:var(--success-light);border-color:var(--success)}
+        @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(220,38,38,.4)}70%{box-shadow:0 0 0 15px rgba(220,38,38,0)}100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}}
+        .med-info h3{font-size:1.2rem;margin-bottom:.25rem}.med-info p{font-size:.9rem;color:var(--text-secondary);margin-bottom:.5rem}.med-time{font-weight:700;color:var(--primary-hover);font-size:1.1rem}.med-card.alarm-active .med-time{color:var(--danger)}
+        .med-status{font-size:.8rem;padding:.25rem .5rem;border-radius:4px;font-weight:600;text-transform:uppercase}.status-upcoming{background:var(--primary-light);color:var(--primary-hover)}.status-due{background:var(--danger);color:white}.status-taken{background:var(--success);color:white}
+        .empty-state{text-align:center;padding:4rem 2rem;background:var(--surface);border-radius:var(--radius-lg);border:1px dashed var(--border)}.empty-state svg{margin:0 auto 1.5rem auto;color:var(--text-secondary)}.empty-state h3{font-size:1.25rem;margin-bottom:.5rem}.empty-state p{color:var(--text-secondary);margin-bottom:2rem}
+        @media (max-width:900px){.nav-links{display:none}.mobile-menu-btn{display:block}.med-card{flex-direction:column;align-items:flex-start;gap:1rem}}
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container navbar">
+            <a href="index.html" class="logo"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/></svg> MediCare<span>+</span></a>
+            <nav class="nav-links"><a href="index.html">Home</a><a href="doctor.html">Doctors</a><a href="appointments.html">Appointments</a><a href="presciption.html">Prescriptions</a><a href="medreminder.html" class="active">Medications</a><a href="medhistory.html">History</a></nav>
+            <div class="nav-cta-group"><a href="dashboard.html" class="btn btn-outline">Dashboard</a><button class="mobile-menu-btn" onclick="toggleMobileMenu(true)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div>
+        </div>
+    </header>
+    <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu(false)"></div>
+    <nav class="mobile-nav" id="mobileNav"><button class="close-mobile" onclick="toggleMobileMenu(false)">&times;</button><a href="index.html">Home</a><a href="doctor.html">Doctors</a><a href="appointments.html">Appointments</a><a href="prescription.html">Prescriptions</a><a href="medreminder.html">Medications</a><a href="medhistory.html">History</a></nav>
+    <section class="page-hero"><div class="container"><h1>Medication Reminders</h1><p>Your automatic medication schedule based on your doctor's instructions.</p></div></section>
+    <main><div class="container">
+        <div class="alarm-banner" id="alarm-banner"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span id="alarm-text">It's time to take your medication!</span></div>
+        <div class="med-list" id="med-list-container"></div>
+    </div></main>
+    <script>
+        function toggleMobileMenu(open){document.getElementById('mobileNav').classList.toggle('active',open);document.getElementById('mobileOverlay').classList.toggle('active',open)}
+        let medicationSchedule=[];
+        function renderReminders(){const container=document.getElementById('med-list-container');const prescriptions=JSON.parse(localStorage.getItem('medicare_prescriptions')||'[]');const takenMeds=JSON.parse(localStorage.getItem('medicare_taken_meds')||'[]');medicationSchedule=[];prescriptions.forEach(rx=>{rx.medicines.forEach(med=>{medicationSchedule.push({id:`${rx.id}_${med.name}`,name:med.name,dosage:med.dosage,timeStart:med.timeStart,timeEnd:med.timeEnd,instructions:med.instructions,taken:takenMeds.includes(`${rx.id}_${med.name}`)})})});if(medicationSchedule.length===0){container.innerHTML=`<div class="empty-state"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg><h3>No Active Reminders</h3><p>When your doctor issues a prescription with a time range, your reminders will appear here automatically.</p></div>`;return}container.innerHTML='';medicationSchedule.forEach(med=>{const card=document.createElement('div');card.className='med-card';card.id=`med-card-${med.id}`;if(med.taken)card.classList.add('taken');card.innerHTML=`<div class="med-info"><h3>${med.name} (${med.dosage})</h3><p>${med.instructions||'No specific instructions'}</p><div class="med-time">Time Range: ${formatTime(med.timeStart)} to ${formatTime(med.timeEnd)}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:.75rem;"><span class="med-status ${med.taken?'status-taken':'status-upcoming'}" id="med-status-${med.id}">${med.taken?'Taken':'Upcoming'}</span>${!med.taken?`<button class="btn btn-primary" onclick="markAsTaken('${med.id}')">Mark as Taken</button>`:''}</div>`;container.appendChild(card)})}
+        function formatTime(timeStr){if(!timeStr)return'--:--';const[hour,minute]=timeStr.split(':');let h=parseInt(hour);const ampm=h>=12?'PM':'AM';h=h%12||12;return`${h}:${minute} ${ampm}`}
+        function markAsTaken(medId){let takenMeds=JSON.parse(localStorage.getItem('medicare_taken_meds')||'[]');takenMeds.push(medId);localStorage.setItem('medicare_taken_meds',JSON.stringify(takenMeds));renderReminders()}
+        function checkAlarms(){const now=new Date();const currentMins=now.getHours()*60+now.getMinutes();let isAnyAlarmActive=false;medicationSchedule.forEach(med=>{if(med.taken)return;const[sH,sM]=med.timeStart.split(':').map(Number);const[eH,eM]=med.timeEnd.split(':').map(Number);const startMins=sH*60+sM;const endMins=eH*60+eM;const card=document.getElementById(`med-card-${med.id}`);const statusEl=document.getElementById(`med-status-${med.id}`);if(card&&statusEl){if(currentMins>=startMins&&currentMins<=endMins){card.classList.add('alarm-active');statusEl.innerText='Due Now';statusEl.className='med-status status-due';isAnyAlarmActive=true}}});const banner=document.getElementById('alarm-banner');if(isAnyAlarmActive){banner.classList.add('show')}else{banner.classList.remove('show')}}
+        document.addEventListener('DOMContentLoaded',()=>{renderReminders();setInterval(checkAlarms,1000)});
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        const firebaseConfig = {apiKey: "AIzaSyBYWfoKu_618OEGJP0jRPMbM64aYXvUALk",authDomain: "medicareplus-31498.firebaseapp.com",projectId: "medicareplus-31498",storageBucket: "medicareplus-31498.firebasestorage.app",messagingSenderId: "28194392967",appId: "1:28194392967:web:09bd28993ece7052e06122",measurementId: "G-KW4H8T7MEN"};
+        const app = initializeApp(firebaseConfig);const analytics = getAnalytics(app);const auth = getAuth(app);
+        onAuthStateChanged(auth, (user) => { if (!user) window.location.href = 'index.html'; });
+    </script>
+</body>
+</html>
