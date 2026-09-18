@@ -16,10 +16,11 @@ async function loadPatientProfile(userId) {
 }
 
 function accessState(appointment, now = new Date()) {
+  if (appointment.status === 'in_progress') return 'during';
   const start = new Date(appointment.appointment_start);
   const end = new Date(appointment.appointment_end);
   const chartOpen = new Date(start.getTime() - 15 * 60 * 1000);
-  const chartClose = new Date(end.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const chartClose = new Date(end.getTime() + 14 * 24 * 60 * 60 * 1000);
   if (now < chartOpen) return 'before';
   if (now >= chartClose) return 'after';
   return 'during';
@@ -32,7 +33,7 @@ function accessMessage(state) {
   if (state === 'after') {
     return 'The documentation window for this visit has closed.';
   }
-  return 'You can record this visit and issue a digital prescription.';
+  return 'You can review this patient chart and issue a digital prescription.';
 }
 
 async function loadAppointmentForDoctor(appointmentId, doctorProfileId) {

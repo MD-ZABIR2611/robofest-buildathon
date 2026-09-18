@@ -23,15 +23,20 @@ async function boot() {
 async function dashboard() {
   const { api, toast, formatWhen, badge, h, doseAt, formatCountdown } = window.Medicare;
   async function render() {
-    const [overview, rxData, medData] = await Promise.all([
+    const [overview, rxData, medData, doctors] = await Promise.all([
       api('/api/patient/overview'),
       api('/api/prescriptions?active=1&limit=1'),
-      api('/api/medications?upcoming=1&limit=1')
+      api('/api/medications?upcoming=1&limit=1'),
+      api('/api/doctors?limit=24')
     ]);
     const latest = overview?.latestPrescription || rxData?.items?.[0] || null;
     const next = overview?.nextMedication || medData?.items?.[0] || null;
     const appts = overview?.appointments || [];
     const medList = (latest?.medicines || []).map((m) => `${h(m.medicine_name)} (${h(m.dosage)})`).join(', ');
+    const abdullah = (doctors?.items || []).find((d) => /abdullah/i.test(d.name));
+    const bookNow = abdullah
+      ? `<p class="actions"><a class="btn" href="${hrefTo('patient/book-appointment.html?doctor=' + abdullah.id)}">See ${h(abdullah.name)} now</a></p>`
+      : `<p class="actions"><a class="btn" href="${hrefTo('patient/book-appointment.html')}">Book a visit</a></p>`;
     qs('content').innerHTML = `
       <div class="grid-3">
         <article class="card">
@@ -65,7 +70,7 @@ async function dashboard() {
           ${badge(row.status)}
         </a>`).join('') || `<div class="empty">No upcoming visits. <a href="${hrefTo('patient/book-appointment.html')}">Book an appointment</a></div>`}
       </div>
-      <p class="actions"><a class="btn" href="${hrefTo('patient/book-appointment.html')}">Book a visit</a></p>`;
+      ${bookNow}`;
     const countdown = document.getElementById('medCountdown');
     if (countdown && next) {
       if (window.__medTimer) clearInterval(window.__medTimer);
@@ -206,7 +211,8 @@ async function book() {
     return isoLocal(d);
   }
   const dateValue = nextOpenDate();
-  const doctorSelect = list.map((d) => `<option value="${h(d.id)}" ${d.id === doctorId ? 'selected' : ''}>${h(d.name)} — ${h(d.specialization)}</option>`).join('');
+  const preferred = list.find((d) => d.id === doctorId) || list.find((d) => /abdullah/i.test(d.name)) || list[0];
+  const doctorSelect = list.map((d) => `<option value="${h(d.id)}" ${preferred && d.id === preferred.id ? 'selected' : ''}>${h(d.name)} — ${h(d.specialization)}</option>`).join('');
   const chips = [];
   const chipStart = new Date();
   chipStart.setHours(12, 0, 0, 0);
@@ -228,6 +234,8 @@ async function book() {
       <div class="field"><label for="doctor">Doctor</label>
         <select id="doctor" name="doctor_id" required>${doctorSelect}</select></div>
       <p class="tiny" id="hoursHint">Clinic times use Bangladesh hours. Sunday is closed. Saturday is morning only.</p>
+      <p><button class="btn" type="button" id="instantBtn">See this doctor now</button></p>
+      <p class="tiny">Instant visit opens the chart immediately so the clinician can read your history and prescribe.</p>
       <div class="form-row">
         <div class="field"><label for="date">Date</label><input id="date" type="date" required min="${dateValue}" value="${dateValue}"></div>
         <div class="field"><label for="type">Visit type</label>
@@ -320,6 +328,23 @@ async function book() {
     qs('bookSubmit').disabled = false;
     setAlert('');
     qs('slots').querySelectorAll('.slot').forEach((el) => el.setAttribute('aria-pressed', el === btn ? 'true' : 'false'));
+  });
+  qs('instantBtn')?.addEventListener('click', async () => {
+    const id = qs('doctor').value;
+    if (!id) return toast('Please choose a doctor.');
+    qs('instantBtn').disabled = true;
+    try {
+      await api('/api/appointments/instant', {
+        method: 'POST',
+        body: { doctor_id: id, type: qs('type').value, reason: qs('reason').value }
+      });
+      toast('Visit started. Your clinician can open the chart and prescribe now.');
+      location.href = hrefTo('patient/appointments.html');
+    } catch (err) {
+      qs('instantBtn').disabled = false;
+      setAlert(err.message);
+      toast(err.message);
+    }
   });
   qs('bookForm').addEventListener('submit', async (event) => {
     event.preventDefault();

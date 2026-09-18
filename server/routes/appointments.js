@@ -12,10 +12,60 @@ const { generateSlots } = require('../services/slots');
 const { toDateStamp } = require('../utils/time');
 const { loadDoctorProfile, loadPatientProfile, describeAccess, requireConsultationWindow } = require('../services/access');
 const { issuePrescription } = require('../controllers/prescriptionController');
+const { createInstantVisit } = require('../services/instantVisit');
 
 const router = express.Router();
 
 router.use(authenticate);
+
+router.post(
+  '/instant',
+  requireRole('patient'),
+  asyncHandler(async (req, res) => {
+    const profile = await loadPatientProfile(req.user.id);
+    const { doctor_id, type, reason } = req.body || {};
+    if (!doctor_id) fail(400, 'INVALID', 'Please choose a doctor.');
+    const doctor = await query(
+      `SELECT dp.* FROM doctor_profiles dp
+       JOIN users u ON u.id = dp.user_id
+       WHERE dp.id = $1 AND u.is_active = TRUE`,
+      [doctor_id]
+    );
+    if (!doctor.rows[0]) fail(400, 'INVALID', 'This doctor is not available for booking.');
+    let created;
+    try {
+      created = await createInstantVisit({
+        patientId: profile.id,
+        doctorId: doctor_id,
+        type: type === 'In-person' ? 'In-person' : 'Video',
+        reason: reason ? `Instant visit: ${reason}` : 'Instant visit'
+      });
+    } catch (err) {
+      if (err.code === '23P01' || err.code === '23505') {
+        fail(409, 'SLOT_TAKEN', 'This clinician already has a visit overlapping this time. Try again in a few minutes.');
+      }
+      throw err;
+    }
+    await audit(req, 'CREATE_APPOINTMENT', 'appointment', created.id);
+    await notify({
+      userId: req.user.id,
+      type: 'appointment_confirmed',
+      title: 'Visit started',
+      message: 'Your instant visit is open. Your clinician can view your history and issue a prescription now.',
+      resourceType: 'appointment',
+      resourceId: created.id
+    });
+    await notify({
+      userId: doctor.rows[0].user_id,
+      type: 'appointment_new',
+      title: 'Instant visit',
+      message: 'A patient started an instant consultation. Open the chart to review history and prescribe.',
+      resourceType: 'appointment',
+      resourceId: created.id
+    });
+    res.status(201).json({ success: true, data: { appointment: created } });
+  })
+);
 
 router.get(
   '/',

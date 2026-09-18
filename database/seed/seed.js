@@ -25,6 +25,82 @@ async function upsertUser({ name, email, role, verified = true }) {
   return rows[0].id;
 }
 
+async function seedZabirAbdullahVisit() {
+  const { createInstantVisit, enableDoctorPrescribing } = require('../../server/services/instantVisit');
+  const abdullah = await query(
+    `SELECT dp.id, u.id AS user_id, u.name, u.email
+     FROM doctor_profiles dp
+     JOIN users u ON u.id = dp.user_id
+     WHERE u.name ILIKE '%Abdullah%'
+     ORDER BY u.created_at
+     LIMIT 1`
+  );
+  if (!abdullah.rows[0]) {
+    console.log('Abdullah doctor not found; skip Zabir instant visit.');
+    return;
+  }
+  await enableDoctorPrescribing(abdullah.rows[0].id);
+
+  const existingZabir = await query(
+    `SELECT id, email FROM users
+     WHERE role = 'patient'
+       AND (LOWER(email) IN ('zabiralnaser2611@gmail.com', 'zabir@medicare.local')
+            OR name ILIKE '%zabir%')
+     ORDER BY CASE WHEN LOWER(email) = 'zabiralnaser2611@gmail.com' THEN 0 ELSE 1 END
+     LIMIT 1`
+  );
+  let zabirUserId = existingZabir.rows[0]?.id;
+  if (!zabirUserId) {
+    zabirUserId = await upsertUser({
+      name: 'Zabir Al Naser',
+      email: 'zabir@medicare.local',
+      role: 'patient'
+    });
+  } else {
+    await query(
+      `UPDATE users SET name = CASE WHEN name ILIKE '%zabir%' THEN name ELSE 'Zabir Al Naser' END, is_active = TRUE, email_verified = TRUE, updated_at = NOW()
+       WHERE id = $1`,
+      [zabirUserId]
+    );
+  }
+
+  await query(
+    `INSERT INTO patient_profiles (user_id, date_of_birth, phone, address, emergency_contact_name, emergency_contact_phone)
+     VALUES ($1, '2002-06-14', '+880 1711 000261', 'Dhaka, Bangladesh', 'Emergency contact', '+880 1711 000262')
+     ON CONFLICT (user_id) DO UPDATE SET
+       date_of_birth = COALESCE(patient_profiles.date_of_birth, EXCLUDED.date_of_birth),
+       phone = COALESCE(NULLIF(patient_profiles.phone, ''), EXCLUDED.phone),
+       address = COALESCE(NULLIF(patient_profiles.address, ''), EXCLUDED.address),
+       emergency_contact_name = COALESCE(NULLIF(patient_profiles.emergency_contact_name, ''), EXCLUDED.emergency_contact_name),
+       emergency_contact_phone = COALESCE(NULLIF(patient_profiles.emergency_contact_phone, ''), EXCLUDED.emergency_contact_phone)`,
+    [zabirUserId]
+  );
+  const zabirProfile = await query(`SELECT id FROM patient_profiles WHERE user_id = $1`, [zabirUserId]);
+  const zabirPatientId = zabirProfile.rows[0].id;
+
+  await query(`DELETE FROM medical_history WHERE patient_id = $1 AND summary LIKE 'Zabir:%'`, [zabirPatientId]);
+  const history = [
+    ['allergy', 'Zabir: Mild allergy to dusty environments. No known drug allergies.'],
+    ['condition', 'Zabir: Intermittent migraine since 2023. Triggers include missed meals and late nights.'],
+    ['lab', 'Zabir: Last CBC (Mar 2026) within normal limits. Fasting glucose 96 mg/dL.'],
+    ['consultation', 'Zabir: Prior clinic note — tension headache, advised hydration, sleep hygiene, and follow-up if pain worsens.'],
+    ['prescription', 'Zabir: Previously used paracetamol 500 mg as needed for headache, max 3 doses per day.']
+  ];
+  for (const [type, summary] of history) {
+    await query(
+      `INSERT INTO medical_history (patient_id, record_type, summary) VALUES ($1, $2, $3)`,
+      [zabirPatientId, type, summary]
+    );
+  }
+
+  const visit = await createInstantVisit({
+    patientId: zabirPatientId,
+    doctorId: abdullah.rows[0].id,
+    reason: 'Instant visit: review Zabir medical history'
+  });
+  console.log('Zabir patient chart ready for', abdullah.rows[0].email, 'visit', visit.id);
+}
+
 async function seed() {
   const patientUserId = await upsertUser({
     name: 'Amina Rahman',
@@ -323,6 +399,7 @@ async function seed() {
 
   const { makeAllDoctorsBookable } = require('../../server/services/clinicHours');
   await makeAllDoctorsBookable();
+  await seedZabirAbdullahVisit();
 
   console.log('Seed complete.');
   console.log('Patient:  patient@medicare.local /', DEMO_PASSWORD);
